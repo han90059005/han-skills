@@ -157,8 +157,7 @@ Copy-Item -Path "han-skills\pdf-reader" `
 | --- | --- | --- |
 | Python + uv | pdf-reader、gpc-plot 等 | 系统自带 Python 3.9/3.12 或 uv 均可 |
 | pandoc ≥ 3.0 | course-review-generator、pandoc-docx | 安装于 `C:\Program Files\Pandoc` |
-| Tectonic | makelatex | 单文件即可，无需 TeX Live |
-| TeX Live（可选） | pandoc 出 PDF（xelatex） | 深度使用 LaTeX 时建议安装完整版 |
+| TeX Live（xelatex） | makelatex、pandoc 出 PDF | 完整版安装于 `D:\AI-tools\latex\texlive\2026` |
 | Zotero Desktop | zotero-paper-reader | 需开启本地 API |
 | matplotlib + numpy | gpc-plot | 系统 Python 或 `uv run --with` |
 
@@ -188,6 +187,44 @@ han-skills/
 - **新增技能**：复制到本仓库根目录，并按分类同步更新「技能总览」和「技能详情」。
 - **修改技能**：同步更新对应详情、触发词与描述。
 
+## 📋 示例工作流：小作业速成链
+
+适用于「查文献 → 写论文 → 出 PDF」的课程小论文、综述或读书报告。
+
+```text
+作业目录/
+├── literature/        ← 文献摘要 md（paper-finder 生成）
+└── 论文.md / 论文.pdf  ← makepaper → makelatex 的产物
+```
+
+1. **检索文献**（paper-finder）：按关键词检索并导出清单。
+
+```powershell
+py C:\Users\admin\.agents\skills\paper-finder\scripts\paper_finder.py search "关键词" -o literature --limit 20
+```
+
+打开 `literature\search_关键词.md`，筛选想要的文献并记下 DOI。
+
+2. **保存摘要**（paper-finder，只存摘要、不下全文）：对每篇选中的文献执行——
+
+```powershell
+py C:\Users\admin\.agents\skills\paper-finder\scripts\paper_finder.py get <DOI> -o literature --category 分类 --no-pdf
+```
+
+生成的 md 以 `## 摘要` 标记，makepaper 能直接识别为「摘要级」来源。
+
+3. **合成论文**（makepaper）：让 Codex 读取 `literature` 里的 md，按题目要求写中文论文，输出 `论文.md`（带 `[n]` 角标引用）。
+
+4. **生成 PDF**（makelatex）：
+
+```powershell
+py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md -o 作业目录
+```
+
+生成 `论文.pdf`，检查正文角标与文末参考文献。
+
+> 定位：摘要级引用，适合综述型小作业；需要深挖方法/数据时，第 2 步去掉 `--no-pdf` 下载全文，再用 pdf-reader 转全文。
+
 ## 📝 更新日志
 
 ### 2026-10-16
@@ -198,4 +235,8 @@ han-skills/
 - 为笔记类技能写清各自侧重点，避免互相抢任务。
 - 重写 README：分类总览、触发词、安装指引、环境依赖与目录结构。
 - 本地技能目录直连 GitHub，更新统一经 GitHub 同步（单仓库工作流）。
+- `paper-finder` 新增 `--no-pdf`：只存 `## 摘要`，不下载全文。
+- `makelatex` 从 Tectonic 切换到 TeX Live 的 `xelatex`。
+- 安装完整 TeX Live 2026 于 `D:\AI-tools\latex\texlive\2026` 并加入 PATH。
+- README 新增「小作业速成链」示例工作流。
 

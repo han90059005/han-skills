@@ -1,0 +1,3 @@
+interface:
+  display_name: "Git Use"
+  short_description: "连接本地项目与 GitHub 并上传（push）的流程与故障排查"

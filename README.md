@@ -20,7 +20,6 @@
 | [pptx](#pptx) | 创建、读取、编辑 PowerPoint 演示文稿 |
 | [raft-report-updater](#raft-report-updater) | 通用实验报告更新工具 |
 | [skill-vetter](#skill-vetter) | 安装技能前的安全审查 |
-| [three-line-table-docx](#three-line-table-docx) | Markdown 转三线表格式 Word |
 | [uv-python-runner](#uv-python-runner) | 在 uv 管理的 Python 环境执行脚本 |
 | [zotero-paper-reader](#zotero-paper-reader) | 从 Zotero 读取和分析论文 |
 
@@ -45,10 +44,6 @@
 ### md-latex-to-docx
 
 将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。适用场景：将 .md/.tex 转为 .docx、为投稿排版学术论文/学位论文、生成符合 SCI 期刊规范的 Word 文档、应用中文论文排版规范。
-
-### three-line-table-docx
-
-将 Markdown 转换为带三线表格式的 Word（.docx）。先用 pandoc 进行初步转换，再用 python-docx 应用中文论文标准表格边框：上下粗线（1.5pt）、表头分隔细线（0.75pt）、无竖线和内部横线。当用户要求将 .md 转为带三线表格式的 .docx，或需要生成表格排版规范的 Word 文档时使用。
 
 ### multi-source-review-consolidator
 

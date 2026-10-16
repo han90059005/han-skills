@@ -35,7 +35,7 @@ flowchart LR
         ZM["Zotero md（待补充）"]:::src --> MP
         TL["小工具（gpc-plot 等）"]:::core -.-> MP
         MP --> ML1["makelatex → PDF"]:::out
-        MP --> PD1["pandoc-docx → Word"]:::out
+        MP --> PD1["makedocx → Word"]:::out
     end
 
     subgraph N["📝 生成 Note"]
@@ -44,7 +44,7 @@ flowchart LR
         CR["course-review-generator"]:::src --> MN
         PR2["pdf-reader"]:::src --> MN
         MN --> ML2["makelatex → PDF"]:::out
-        MN --> PD2["pandoc-docx → Word"]:::out
+        MN --> PD2["makedocx → Word"]:::out
     end
 
     subgraph S["🔧 生成 Skill"]
@@ -66,7 +66,7 @@ flowchart LR
 从课程 PPT（PDF）生成结构化复习笔记，或把多份已有的复习笔记/学习指南合并去重为一份 Markdown。支持扫描版 PDF 的视觉回读，可输出 Markdown 并可选转 PDF。
 
 - **触发**：整理 PPT 复习资料 / 合并复习笔记 / 生成复习清单
-- **相关**：内容生成后的排版交给 [makelatex](#makelatex)（PDF）或 [pandoc-docx](#pandoc-docx)（Word）
+- **相关**：内容生成后的排版交给 [makelatex](#makelatex)（PDF）或 [makedocx](#makedocx)（Word）
 
 #### makenote
 
@@ -80,7 +80,7 @@ flowchart LR
 读取文献 Markdown，合成带 `[n]` 角标引用的高质量中文论文/综述，输出可直接交给 makelatex 的 Markdown。
 
 - **触发**：依据 md 资料写论文 / 综述
-- **相关**：排版用 [makelatex](#makelatex)（PDF）或 [pandoc-docx](#pandoc-docx)（Word）
+- **相关**：排版用 [makelatex](#makelatex)（PDF）或 [makedocx](#makedocx)（Word）
 
 #### makelatex
 
@@ -89,7 +89,7 @@ flowchart LR
 - **触发**：Markdown 转 PDF / 含引用的文档排版
 - **依赖**：Tectonic（无需 TeX Live）
 
-#### pandoc-docx
+#### makedocx
 
 把 Markdown / LaTeX / XeLaTeX 转成符合中文论文规范的 Word，字体、标题字号、1.5 倍行距、三线表、公式、参考文献一步到位。
 
@@ -173,7 +173,7 @@ flowchart LR
 | 依赖 | 用途 | 说明 |
 | --- | --- | --- |
 | Python + uv | pdf-reader、gpc-plot 等 | 系统自带 Python 3.9/3.12 或 uv 均可 |
-| pandoc ≥ 3.0 | course-review-generator、pandoc-docx | 安装于 `C:\Program Files\Pandoc` |
+| pandoc ≥ 3.0 | course-review-generator、makedocx | 安装于 `C:\Program Files\Pandoc` |
 | TeX Live（xelatex） | makelatex、pandoc 出 PDF | 完整版安装于 `D:\AI-tools\latex\texlive\2026` |
 | Zotero Desktop | zotero-paper-reader | 需开启本地 API |
 | matplotlib + numpy | gpc-plot | 系统 Python 或 `uv run --with` |
@@ -189,7 +189,7 @@ han-skills/
 ├── makelatex/
 ├── makenote/
 ├── makepaper/
-├── pandoc-docx/
+├── makedocx/
 ├── paper-finder/
 ├── pdf-reader/
 ├── pptx/
@@ -247,8 +247,8 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 ### 2026-10-16
 
 - 新增 `git-use` 技能：本地与 GitHub 互传的完整流程。
-- 合并技能：删除 `three-line-table-docx`（功能并入 `pandoc-docx`）；将 `multi-source-review-consolidator` 并入 `course-review-generator`。
-- 重命名：`md-latex-to-docx` → `pandoc-docx`。
+- 合并技能：删除 `three-line-table-docx`（功能并入 `makedocx`）；将 `multi-source-review-consolidator` 并入 `course-review-generator`。
+- 重命名：`md-latex-to-docx` → `pandoc-docx` → `makedocx`。
 - 为笔记类技能写清各自侧重点，避免互相抢任务。
 - 重写 README：分类总览、触发词、安装指引、环境依赖与目录结构。
 - 本地技能目录直连 GitHub，更新统一经 GitHub 同步（单仓库工作流）。
@@ -257,4 +257,6 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - 安装完整 TeX Live 2026 于 `D:\AI-tools\latex\texlive\2026` 并加入 PATH。
 - README 新增「小作业速成链」示例工作流。
 - 技能总览从表格改为横向流程图（Paper / Note / Skill 三条生成主线）。
+- `pandoc-docx` 重命名为 `makedocx`，与 makepaper / makelatex / makenote 命名对齐。
+- 内容层（makepaper、makenote）新增「输入接口（归一化）」；成品层（makelatex、makedocx）新增「运行可靠性」。
 

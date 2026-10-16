@@ -55,3 +55,9 @@ python scripts/md_to_latex_pdf.py 输入.md \
 - **位置**：右对齐签名用 `\begin{flushright}...\end{flushright}` 包裹，`\includegraphics` 紧跟「签字：」之后，图片底部即对齐文字基线，看起来像手写签名。
 
 若目标机器没有 TeX Live，可用 TinyTeX 的 xelatex 替代，但需自行补装 ctex 等宏包并调整字体配置。
+
+## 运行可靠性
+
+- 编译用 `-interaction=nonstopmode`；失败时读 `.log` 末尾定位错误，脚本会在编译后清理 `.aux/.log/.out`。
+- 生成后校验：PDF 存在且非 0 字节、页数 > 0，正文角标数量与参考文献条数一致。
+- 找不到 xelatex 时用 `--xelatex` 指定完整路径；路径含中文/空格时用引号包裹。

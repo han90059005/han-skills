@@ -1,6 +1,6 @@
 ---
 name: makenote
-description: 笔记构建助手，围绕一份以「当前工作目录名.md」命名的 Markdown 笔记文件工作。用户通过 /makenote 口令或直接发送文字/文件，在对话中完成笔记的新增、修改、订正与补充；课件先转 pandoc 干净格式再摘录，课本 PDF 默认不全量读取。侧重交互式维护一份固定笔记文件；批量生成/合并复习资料用 course-review-generator，依据文献写论文用 makepaper，排版输出用 makelatex 或 pandoc-docx。触发词：「/makenote」「做笔记」「记笔记」「整理笔记」。
+description: 笔记构建助手，围绕一份以「当前工作目录名.md」命名的 Markdown 笔记文件工作。用户通过 /makenote 口令或直接发送文字/文件，在对话中完成笔记的新增、修改、订正与补充；课件先转 pandoc 干净格式再摘录，课本 PDF 默认不全量读取。侧重交互式维护一份固定笔记文件；批量生成/合并复习资料用 course-review-generator，依据文献写论文用 makepaper，排版输出用 makelatex 或 makedocx。触发词：「/makenote」「做笔记」「记笔记」「整理笔记」。
 ---
 
 # 笔记构建助手（/makenote）
@@ -12,7 +12,18 @@ description: 笔记构建助手，围绕一份以「当前工作目录名.md」�
 - 本技能：围绕一份固定笔记 md，随对话增量维护（新增/修改/订正）。
 - course-review-generator：从课件 PPT 批量生成复习笔记，或合并多份已有笔记。
 - makepaper：依据文献 md 合成带引用的论文/综述。
-- makelatex / pandoc-docx：只做最终排版（PDF / Word），不生成内容。
+- makelatex / makedocx：只做最终排版（PDF / Word），不生成内容。
+
+## 输入接口（归一化）
+
+用户发来的 md/文本来源多样（paper-finder 文献、Zotero 全文、pptx 提取、pdf-reader 文本、course-review-generator 笔记、手打内容）。写入笔记前先归一化：
+
+1. **定来源**：判断属于 课本摘录 / 课件 / 文献 / 其他，并打标签（[课本-Pxx]、[课件-Pxx]、[文献]、[个人推导]）。
+2. **转干净 md**：课件等原始导出先转 pandoc 友好的干净格式，剔除多余标记、乱码、水印；统一标题层级与空行。
+3. **去重对齐**：与笔记已有内容对比，重复的更新而不重复追加；同一主题合并到同一小节。
+4. **存疑标注**：来源不明或内容可疑的标 [存疑待查]，不臆测。
+
+归一化后再写入正式笔记区；中部构建逻辑不变，笔记仍以 Markdown 保存。
 
 ## 核心规则
 

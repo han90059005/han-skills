@@ -1,6 +1,6 @@
 ---
 name: makepaper
-description: 读取指定文件夹内的 Markdown 资料（文献 md，可能只有摘要或含全文），按用户要求合成带 [n] 交叉引用的高质量中文论文，输出为可交给 makelatex 转 PDF 的 Markdown。侧重依据文献写论文/综述；生成复习笔记用 course-review-generator，交互维护笔记用 makenote，排版输出用 makelatex（PDF）或 pandoc-docx（Word）。用于依据若干 md 资料写论文/报告/综述。
+description: 读取指定文件夹内的 Markdown 资料（文献 md，可能只有摘要或含全文），按用户要求合成带 [n] 交叉引用的高质量中文论文，输出为可交给 makelatex 转 PDF 的 Markdown。侧重依据文献写论文/综述；生成复习笔记用 course-review-generator，交互维护笔记用 makenote，排版输出用 makelatex（PDF）或 makedocx（Word）。用于依据若干 md 资料写论文/报告/综述。
 ---
 
 # makepaper
@@ -9,7 +9,24 @@ description: 读取指定文件夹内的 Markdown 资料（文献 md，可能只
 
 ## 与其他技能的区别
 
-本技能只负责「依据文献 md 合成论文/综述正文 + 参考文献」；复习笔记生成/合并用 course-review-generator，交互式笔记维护用 makenote，最终排版转 PDF 用 makelatex、转 Word 用 pandoc-docx。
+本技能只负责「依据文献 md 合成论文/综述正文 + 参考文献」；复习笔记生成/合并用 course-review-generator，交互式笔记维护用 makenote，最终排版转 PDF 用 makelatex、转 Word 用 makedocx。
+
+## 输入接口（归一化）
+
+源 md 可能来自 paper-finder、Zotero 插件、pdf-reader、course-review-generator 等，格式不统一。合成前先把每份源 md 归一化成一条「文献记录」，再做中部构建。
+
+对每份源 md：
+
+1. **定标题**：取首个 `# 标题`；无标题则用文件名兜底。
+2. **提元数据**：从 `**作者**：`、`- 作者：`、`作者：`、`年份：`、`期刊：`、`DOI:`、`**DOI**：` 等写法中提取作者/年份/期刊/DOI。
+3. **判深度**（优先级从高到低）：
+   - 有 `## 全文` / `## 全文（自动提取）` 或很长的正文 → 全文级；
+   - 有 `## 摘要` / `### 摘要` / `- 摘要：` / `Abstract` → 摘要级；
+   - 只有标题与元数据 → 仅元数据，只登记来源。
+4. **清洗**：剔除水印行、乱码、多余空行；统一用空行分段。
+5. **编号**：给每条记录稳定编号 `[n]`，全文保持一致，供正文引用。
+
+归一化完成后进入中部构建；中部构建逻辑不变，向后仍输出 Markdown。
 
 ## 每次必须确认的三项（缺一先向用户补齐，不要硬猜）
 

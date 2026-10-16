@@ -1,6 +1,6 @@
 ---
 name: course-review-generator
-description: '从课程 PPT（PDF）生成结构化复习笔记，或把多份已有的复习笔记/学习指南合并去重为一份 Markdown。支持扫描版 PDF 视觉回读与可选转 PDF。侧重复习资料本身的内容整理；交互式维护单份笔记用 makenote，依据文献写论文用 makepaper，最终排版转 PDF/Word 用 makelatex 或 pandoc-docx。'
+description: '从课程 PPT（PDF）生成结构化复习笔记，或把多份已有的复习笔记/学习指南合并去重为一份 Markdown。支持扫描版 PDF 视觉回读与可选转 PDF。侧重复习资料本身的内容整理；交互式维护单份笔记用 makenote，依据文献写论文用 makepaper，最终排版转 PDF/Word 用 makelatex 或 makedocx。'
 argument-hint: '[course directory path]'
 ---
 

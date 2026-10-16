@@ -1,5 +1,5 @@
 ---
-name: pandoc-docx
+name: makedocx
 description: '将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。核心是 pandoc 转换 + python-docx 后处理，侧重最终 Word 排版输出；生成复习笔记用 course-review-generator，依据文献写论文用 makepaper，转中文 PDF 用 makelatex。'
 user-invocable: true
 argument-hint: '[path to .md or .tex file]'
@@ -15,6 +15,12 @@ argument-hint: '[path to .md or .tex file]'
 
 - 本技能只负责「Markdown / LaTeX → Word（.docx）」的最终排版，不负责内容生成。
 - 复习笔记生成/合并 → course-review-generator；依据文献写论文 → makepaper；Markdown 转中文 PDF → makelatex。
+
+## 运行可靠性
+
+- 先确认 `pandoc --version` ≥ 3.0；python-docx 用 `uv run --with python-docx` 临时安装，不污染系统环境。
+- 目标 `.docx` 被 Word 占用报 Permission denied 时，另存为新文件名再处理。
+- 转换后校验：docx 能正常打开，标题字号、三线表、公式、参考文献保留；路径含中文/空格时用引号包裹。
 
 ## 触发条件
 

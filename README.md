@@ -2,7 +2,7 @@
 
 个人常用 Codex 技能库，长期维护、持续更新。
 
-一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **15 个技能**。
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **16 个技能**。
 
 ---
 
@@ -33,6 +33,7 @@ flowchart LR
         PF["paper-finder"]:::src --> MP["makepaper"]:::core
         PR["pdf-reader"]:::src --> MP
         ZM["Zotero md（待补充）"]:::src --> MP
+        ML["makelibrary（打标签）"]:::src --> MP
         TL["小工具（gpc-plot 等）"]:::core -.-> MP
         MP --> ML1["makelatex → PDF"]:::out
         MP --> PD1["makedocx → Word"]:::out
@@ -84,10 +85,10 @@ flowchart LR
 
 #### makelatex
 
-把含 `[n]` 交叉引用的 Markdown 转成中文 PDF（Tectonic + ctex），正文引用渲染为角标并保留参考文献表。
+把含 `[n]` 交叉引用的 Markdown 转成中文 PDF（XeLaTeX + ctex），正文引用渲染为角标并保留参考文献表。
 
 - **触发**：Markdown 转 PDF / 含引用的文档排版
-- **依赖**：Tectonic（无需 TeX Live）
+- **依赖**：TeX Live（xelatex）
 
 #### makedocx
 
@@ -118,6 +119,13 @@ flowchart LR
 
 - **触发**：读 PDF / 提取 PDF 文字
 - **依赖**：uv 管理依赖
+
+#### makelibrary
+
+扫描文献 md 目录，按标签词表打标签并生成集中索引（JSON + 可读清单，清单按标签统计篇数）。读一遍原文；内容层之后按标签筛选、只读命中的文件。
+
+- **触发**：文献库 / 打标签 / 建立索引
+- **依赖**：本地运行，不联网
 
 ### 🔬 科研与数据
 
@@ -187,6 +195,7 @@ han-skills/
 ├── git-use/
 ├── gpc-plot/
 ├── makelatex/
+├── makelibrary/
 ├── makenote/
 ├── makepaper/
 ├── makedocx/
@@ -259,4 +268,5 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - 技能总览从表格改为横向流程图（Paper / Note / Skill 三条生成主线）。
 - `pandoc-docx` 重命名为 `makedocx`，与 makepaper / makelatex / makenote 命名对齐。
 - 内容层（makepaper、makenote）新增「输入接口（归一化）」；成品层（makelatex、makedocx）新增「运行可靠性」。
+- 新增 `makelibrary`：文献 md 打标签 + 生成集中索引；makepaper 增加按标签筛选的阅读检索入口与低/高强度机制。
 

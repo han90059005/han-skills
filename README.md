@@ -1,93 +1,190 @@
-# han-skills
+# 🧰 han-skills
 
-保存个人常用 Codex skill，长期更新。当前共收录 15 个技能，涵盖文档排版、文献管理、科研绘图与数据处理、演示文稿、以及技能与 Git 管理等方向。
+个人常用 Codex 技能库，长期维护、持续更新。
 
-## 技能总览
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **15 个技能**。
 
-| 技能 | 一句话说明 |
-| --- | --- |
-| [course-review-generator](#course-review-generator) | 从 PPT 生成或合并复习笔记 |
-| [find-skills](#find-skills) | 发现并安装可用的 Agent 技能 |
-| [git-use](#git-use) | 连接本地项目与 GitHub 并上传（push） |
-| [gpc-plot](#gpc-plot) | 绘制高分子 GPC/SEC 色谱图 |
-| [makelatex](#makelatex) | 带交叉引用的 Markdown 转中文 LaTeX PDF |
-| [makenote](#makenote) | 交互式维护一份 Markdown 笔记 |
-| [makepaper](#makepaper) | 依据文献 md 合成带引用的中文论文 |
-| [pandoc-docx](#pandoc-docx) | Markdown/LaTeX 转符合中文论文规范的 Word |
-| [paper-finder](#paper-finder) | 关键词检索文献、下载 PDF 并生成 MD 备份 |
-| [pdf-reader](#pdf-reader) | 读取并提取 PDF 中的文字 |
-| [pptx](#pptx) | 创建、读取、编辑 PowerPoint 演示文稿 |
-| [raft-report-updater](#raft-report-updater) | 通用实验报告更新工具 |
-| [skill-vetter](#skill-vetter) | 安装技能前的安全审查 |
-| [uv-python-runner](#uv-python-runner) | 在 uv 管理的 Python 环境执行脚本 |
-| [zotero-paper-reader](#zotero-paper-reader) | 从 Zotero 读取和分析论文 |
+---
 
-## 文档排版与笔记
+## 🚀 快速开始
 
-### course-review-generator
+```powershell
+# 1. 克隆仓库
+git clone https://github.com/han90059005/han-skills.git
 
-从课程 PPT（PDF）生成结构化复习笔记，或把多份已有的复习笔记/学习指南合并去重为一份 Markdown。支持扫描版 PDF 视觉回读与可选转 PDF。侧重复习资料本身的内容整理；交互式维护单份笔记用 makenote，依据文献写论文用 makepaper，最终排版转 PDF/Word 用 makelatex 或 pandoc-docx。
+# 2. 按需把技能复制到本地技能目录
+Copy-Item -Path "han-skills\pdf-reader" `
+          -Destination "$env:USERPROFILE\.agents\skills\pdf-reader" `
+          -Recurse -Force
+```
 
-### makenote
+> 本地技能目录通常是 `C:\Users\<你的用户名>\.agents\skills`。一次只装需要的即可，装上后新开一个对话就能用自然语言触发。
 
-笔记构建助手，围绕一份以「当前工作目录名.md」命名的 Markdown 笔记文件工作。通过 /makenote 口令或直接发送文字/文件，在对话中完成笔记的新增、修改、订正与补充；课件先转 pandoc 干净格式再摘录，课本 PDF 默认不全量读取。侧重交互式维护一份固定笔记文件；批量生成/合并复习资料用 course-review-generator，依据文献写论文用 makepaper，排版输出用 makelatex 或 pandoc-docx。触发词：「/makenote」「做笔记」「记笔记」「整理笔记」。
+## 📦 技能总览
 
-### makepaper
+| 技能 | 分类 | 一句话说明 |
+| --- | --- | --- |
+| [course-review-generator](#course-review-generator) | 📝 文档 | 从 PPT 生成或合并复习笔记 |
+| [makenote](#makenote) | 📝 文档 | 交互式维护一份 Markdown 笔记 |
+| [makepaper](#makepaper) | 📝 文档 | 依据文献 md 合成带引用的中文论文 |
+| [makelatex](#makelatex) | 📝 文档 | 含交叉引用的 Markdown 转中文 PDF |
+| [pandoc-docx](#pandoc-docx) | 📝 文档 | Markdown/LaTeX 转中文论文规范 Word |
+| [paper-finder](#paper-finder) | 📚 文献 | 检索文献、下载 PDF、生成 MD 备份 |
+| [zotero-paper-reader](#zotero-paper-reader) | 📚 文献 | 从 Zotero 读取和分析论文 |
+| [pdf-reader](#pdf-reader) | 📚 文献 | 提取 PDF 中的文字 |
+| [gpc-plot](#gpc-plot) | 🔬 科研 | 绘制 GPC/SEC 色谱图 |
+| [raft-report-updater](#raft-report-updater) | 🔬 科研 | 实验报告自动更新与归档 |
+| [pptx](#pptx) | 🎬 演示 | 创建、读取、编辑 PowerPoint |
+| [git-use](#git-use) | 🛠️ 开发 | 本地与 GitHub 互传 |
+| [find-skills](#find-skills) | 🛠️ 开发 | 发现并安装技能 |
+| [skill-vetter](#skill-vetter) | 🛠️ 开发 | 安装技能前的安全审查 |
+| [uv-python-runner](#uv-python-runner) | 🛠️ 开发 | uv 环境下执行 Python 脚本 |
 
-读取指定文件夹内的 Markdown 资料（文献 md，可能只有摘要或含全文），按用户要求合成带 [n] 交叉引用的高质量中文论文，输出为可交给 makelatex 转 PDF 的 Markdown。侧重依据文献写论文/综述；生成复习笔记用 course-review-generator，交互维护笔记用 makenote，排版输出用 makelatex（PDF）或 pandoc-docx（Word）。
+## 📚 技能详情
 
-### makelatex
+### 📝 文档排版与笔记
 
-把带交叉引用/角标（如正文中的 [1]）的 Markdown 文档转换成排版规范的中文 PDF（LaTeX/tectonic + ctex），正文引用渲染为角标并保留参考文献表。适用于需要 LaTeX 排版的中文课程作业、报告、笔记等含 [n] 引用的 Markdown 转 PDF；不含引用的普通 Markdown 转 PDF 请直接用 pandoc。
+#### course-review-generator
 
-### pandoc-docx
+从课程 PPT（PDF）生成结构化复习笔记，或把多份已有的复习笔记/学习指南合并去重为一份 Markdown。支持扫描版 PDF 的视觉回读，可输出 Markdown 并可选转 PDF。
 
-将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。核心是 pandoc 转换 + python-docx 后处理，侧重最终 Word 排版输出；生成复习笔记用 course-review-generator，依据文献写论文用 makepaper，转中文 PDF 用 makelatex。
+- **触发**：整理 PPT 复习资料 / 合并复习笔记 / 生成复习清单
+- **相关**：内容生成后的排版交给 [makelatex](#makelatex)（PDF）或 [pandoc-docx](#pandoc-docx)（Word）
 
-## 文献与 PDF
+#### makenote
 
-### paper-finder
+围绕一份固定 Markdown 笔记文件，随对话增量维护（新增、修改、订正、补充），自动维护「记忆快照区」以便跨会话续写。
 
-按关键词检索学术文献，返回经校验的标题、作者、期刊、年份、DOI 与摘要；人工筛选后可按分类下载 PDF，并生成 Markdown 内容备份（元数据+摘要+开放获取全文）。用于校园网环境下的论文查找、筛选与整理；不负责谷歌学术抓取。
+- **触发**：/makenote / 做笔记 / 记笔记
+- **相关**：批量生成复习资料用 [course-review-generator](#course-review-generator)
 
-### zotero-paper-reader
+#### makepaper
 
-从 Zotero 文献库中读取和分析学术论文。当用户要求按标题、作者或主题读取、访问或分析其 Zotero 库中的论文时使用。自动搜索 Zotero、将 PDF 转为 Markdown、保存到 Notes/PaperInMarkdown，并提供分析。
+读取文献 Markdown，合成带 `[n]` 角标引用的高质量中文论文/综述，输出可直接交给 makelatex 的 Markdown。
 
-### pdf-reader
+- **触发**：依据 md 资料写论文 / 综述
+- **相关**：排版用 [makelatex](#makelatex)（PDF）或 [pandoc-docx](#pandoc-docx)（Word）
 
-读取并提取 PDF 文件中的文字。当用户要求读取、打开、提取或分析 PDF 文档时使用。支持中文和英文 PDF。自动将 PDF 页面转换为保留格式的可读文本。适用场景：阅读 PDF、提取 PDF 内容、将 PDF 转为文本、分析 PDF 文档。
+#### makelatex
 
-## 科研与数据
+把含 `[n]` 交叉引用的 Markdown 转成中文 PDF（Tectonic + ctex），正文引用渲染为角标并保留参考文献表。
 
-### gpc-plot
+- **触发**：Markdown 转 PDF / 含引用的文档排版
+- **依赖**：Tectonic（无需 TeX Live）
 
-高分子 GPC/SEC 色谱图绘制。解析 Agilent（Cirrus 软件）GPC 数据文件，生成 EPS+TIF 图谱。支持单文件、多曲线叠加组图、批量逐个出图三种模式。触发词：「GPC」「画GPC」「GPC图」「色谱图」「SEC」「分子量分布」「Cirrus」「194/195/196 等编号的txt」「dw_dlogM」「保留时间」。
+#### pandoc-docx
 
-### raft-report-updater
+把 Markdown / LaTeX / XeLaTeX 转成符合中文论文规范的 Word，字体、标题字号、1.5 倍行距、三线表、公式、参考文献一步到位。
 
-通用实验报告更新工具。自动读取项目目录下的 Excel 数据文件和已有 Markdown 报告，检测数据变更与矛盾，重新生成完整实验报告并按日期归档。适用场景包括但不限于：聚合物 RAFT/ATRP 可控聚合、有机合成条件筛选、材料性能测试矩阵、催化剂活性评价等任何以 Entry 编号组织的实验数据。触发词：「更新报告」「更新实验报告」「刷新报告」「加数据」「添加实验」「update report」。
+- **触发**：md/tex 转 docx / 三线表 / 论文排版
+- **依赖**：pandoc + python-docx（无需 TeX Live）
 
-## 演示文稿
+### 📚 文献与 PDF
 
-### pptx
+#### paper-finder
 
-只要涉及 .pptx 文件——无论是作为输入、输出还是两者兼有——就使用此技能。包括：创建幻灯片组、路演文稿或演示文稿；读取、解析或提取任何 .pptx 文件中的文本（即使提取的内容会用于其他地方，如邮件或摘要）；编辑、修改或更新现有演示文稿；合并或拆分幻灯片文件；处理模板、版式、演讲者备注或批注。只要用户提到 "deck"、"slides"、"presentation"，或引用 .pptx 文件名，无论之后打算如何处理内容，都应触发。
+按关键词检索学术文献，校验元数据，分类下载开放获取 PDF，并生成 Markdown 内容备份。
 
-## 开发与技能管理
+- **触发**：查文献 / 下载 PDF
+- **依赖**：校园网环境
 
-### git-use
+#### zotero-paper-reader
 
-连接本地项目与 GitHub 仓库并上传（push）的完整流程，包括 HTTPS 令牌认证、克隆/初始化后推送、.gitignore 与敏感信息检查，以及本机常见故障（schannel 报错、代理、凭据管理器卡住、dubious ownership）。触发词：「git」「github」「上传」「push」「clone」「推送到 GitHub」。
+从 Zotero 文献库读取和分析论文，自动搜索、转 Markdown 并保存到 Notes/PaperInMarkdown。
 
-### find-skills
+- **触发**：Zotero / 读论文
+- **依赖**：Zotero Desktop 本地 API（localhost:23119）
 
-帮助用户发现和安装 Agent 技能。当用户提出类似"我怎么做 X"、"找一个能做 X 的技能"、"有没有可以……的技能"等问题，或表达出扩展功能的需求时触发。当用户寻找的功能可能以可安装技能的形式存在时，应使用此技能。
+#### pdf-reader
 
-### skill-vetter
+提取 PDF 中的文字（中英文），尽量保留格式；文本版走 pdfplumber/pymupdf，扫描版需 OCR。
 
-面向 AI Agent 的安全优先技能审查工具。在从 ClawdHub、GitHub 或其他来源安装任何技能之前使用，检查危险标志、权限范围和可疑模式。
+- **触发**：读 PDF / 提取 PDF 文字
+- **依赖**：uv 管理依赖
 
-### uv-python-runner
+### 🔬 科研与数据
 
-在 uv 管理的 Python 环境中执行 Python 脚本。当默认 Python 由 uv 管理（出现 externally-managed-environment 报错）、pip install 失败，或需要处理中文路径和特殊字符文件名时使用。涵盖用于一次性脚本的 uv run --with 和用于环境管理的 uv pip。
+#### gpc-plot
+
+解析 Agilent（Cirrus 软件）GPC 数据文件，绘制 EPS+TIF 色谱图；支持单文件、多曲线叠加、批量出图。
+
+- **触发**：GPC / 色谱图 / SEC / 分子量分布
+- **依赖**：matplotlib + numpy
+
+#### raft-report-updater
+
+读取 Excel 数据与已有 Markdown 报告，检测数据变更与矛盾，重新生成完整报告并按日期归档，适合以 Entry 编号组织的实验数据。
+
+- **触发**：更新实验报告 / 加数据 / 添加实验
+
+### 🎬 演示文稿
+
+#### pptx
+
+创建、读取、编辑 `.pptx` 文件：文本提取、模板与版式、演讲者备注、批注、合并与拆分等。
+
+- **触发**：PPT / slides / presentation / .pptx 文件
+
+### 🛠️ 开发与技能管理
+
+#### git-use
+
+本地项目与 GitHub 仓库互传：克隆、初始化后推送、令牌认证、`.gitignore` 与敏感信息检查，并涵盖本机实测故障（schannel→OpenSSL、代理、凭据管理器卡住、dubious ownership）。
+
+- **触发**：git / github / push / clone / 上传
+
+#### find-skills
+
+发现并安装可用的 Agent 技能，回答"我怎么做 X""有没有能……的技能"类问题。
+
+- **触发**：我怎么做 X / 找一个技能
+
+#### skill-vetter
+
+安装技能前的安全审查：检查危险标志、权限范围、可疑模式。
+
+- **触发**：安装技能前审查
+
+#### uv-python-runner
+
+在 uv 管理的 Python 环境中执行脚本，处理中文路径、特殊字符文件名、依赖安装等。
+
+- **触发**：uv run / pip 失败 / externally-managed-environment
+
+## 🧱 环境依赖
+
+| 依赖 | 用途 | 说明 |
+| --- | --- | --- |
+| Python + uv | pdf-reader、gpc-plot 等 | 系统自带 Python 3.9/3.12 或 uv 均可 |
+| pandoc ≥ 3.0 | course-review-generator、pandoc-docx | 安装于 `C:\Program Files\Pandoc` |
+| Tectonic | makelatex | 单文件即可，无需 TeX Live |
+| TeX Live（可选） | pandoc 出 PDF（xelatex） | 深度使用 LaTeX 时建议安装完整版 |
+| Zotero Desktop | zotero-paper-reader | 需开启本地 API |
+| matplotlib + numpy | gpc-plot | 系统 Python 或 `uv run --with` |
+
+## 🗂️ 目录结构
+
+```text
+han-skills/
+├── course-review-generator/
+├── find-skills/
+├── git-use/
+├── gpc-plot/
+├── makelatex/
+├── makenote/
+├── makepaper/
+├── pandoc-docx/
+├── paper-finder/
+├── pdf-reader/
+├── pptx/
+├── raft-report-updater/
+├── skill-vetter/
+├── uv-python-runner/
+└── zotero-paper-reader/
+```
+
+## 🔄 维护约定
+
+- **新增技能**：复制到本仓库根目录，并按分类同步更新「技能总览」和「技能详情」。
+- **修改技能**：同步更新对应详情、触发词与描述。
+- **隐私**：含个人信息的技能（如 `hanjinhong-profile`）默认只留在本地，不上传公开仓库。

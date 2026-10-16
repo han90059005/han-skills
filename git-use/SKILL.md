@@ -52,6 +52,33 @@ git commit -m "说明"
 git push
 ```
 
+## 本机技能库同步工作流（han-skills）
+
+本机技能库采用「工作副本 + 本地生效目录」两份：
+
+- **工作副本**：`C:\Users\admin\Documents\Codex\<会话目录>\han-skills`，用于编辑文件并推送到 GitHub。
+- **生效目录**：`C:\Users\admin\.agents\skills`，Codex 实际从这里加载技能，且已直接连接 GitHub。
+
+同步流程：
+
+```powershell
+# ① 在工作副本里改文件，然后提交并推送
+cd "C:\Users\admin\Documents\Codex\<会话目录>\han-skills"
+git add -A
+git commit -m "说明"
+git push
+
+# ② 在生效目录里拉取最新（Codex 随后即可用到新技能）
+cd C:\Users\admin\.agents\skills
+git pull
+```
+
+要点：
+
+- 生效目录里的 `hanjinhong-profile/` 已写入 `.gitignore`，保持本地私有、不上传。
+- 每次推送后，在仓库 README 的「更新日志」追加一条记录。
+- 推送时若凭据管理器弹窗卡住，参考下文「推送卡住」的绕过方式。
+
 ## 本机常见故障（实测）
 
 1. **schannel 报错**：Windows 上 git/curl 报 `SEC_E_NO_CREDENTIALS` 时，改用 OpenSSL：`git config --global http.sslBackend openssl`。

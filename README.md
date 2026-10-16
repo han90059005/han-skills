@@ -188,3 +188,14 @@ han-skills/
 - **新增技能**：复制到本仓库根目录，并按分类同步更新「技能总览」和「技能详情」。
 - **修改技能**：同步更新对应详情、触发词与描述。
 
+## 📝 更新日志
+
+### 2026-10-16
+
+- 新增 `git-use` 技能：本地与 GitHub 互传的完整流程。
+- 合并技能：删除 `three-line-table-docx`（功能并入 `pandoc-docx`）；将 `multi-source-review-consolidator` 并入 `course-review-generator`。
+- 重命名：`md-latex-to-docx` → `pandoc-docx`。
+- 为笔记类技能写清各自侧重点，避免互相抢任务。
+- 重写 README：分类总览、触发词、安装指引、环境依赖与目录结构。
+- 建立「工作副本 + 本地生效目录」双仓库工作流，更新统一经 GitHub 同步。
+

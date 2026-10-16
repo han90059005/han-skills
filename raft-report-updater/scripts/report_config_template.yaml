@@ -1,0 +1,28 @@
+﻿# ==========================================
+#  raft-report-updater 项目配置文件
+#  将此文件复制到你的实验项目目录，按需修改
+# ==========================================
+
+project:
+  name: "我的实验项目"
+  report_pattern: "*.md"
+  report_name: "实验报告（{date}）.md"
+
+# ---- Excel 数据源 ----
+excel_sources:
+  - file: "数据汇总.xlsx"
+    sheet: null
+
+# ---- 列定义（可选）----
+# columns:
+#   - { name: Entry, label: "Entry", type: int }
+#   - { name: Monomer, label: "单体", type: str }
+#   - { name: Conv, label: "Conv%", type: float }
+
+# ---- 实验分组（可选）----
+# categories:
+#   "分组名称1":
+#     entries: [1, 2, 3, 4]
+#     title: "表格标题"
+#     condition: "30 Hz, 60 min"
+#     hide_cols: ["备注"]

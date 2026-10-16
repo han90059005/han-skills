@@ -1,11 +1,18 @@
 ---
 name: makenote
-description: 笔记构建助手，围绕一份以「当前工作目录名.md」命名的 Markdown 笔记文件工作。用户通过 /makenote 口令或直接发送文字/文件，在对话中完成笔记的新增、修改、订正与补充；课件先转 pandoc 干净格式再摘录，课本 PDF 默认不全量读取。触发词：「/makenote」「做笔记」「记笔记」「整理笔记」。
+description: 笔记构建助手，围绕一份以「当前工作目录名.md」命名的 Markdown 笔记文件工作。用户通过 /makenote 口令或直接发送文字/文件，在对话中完成笔记的新增、修改、订正与补充；课件先转 pandoc 干净格式再摘录，课本 PDF 默认不全量读取。侧重交互式维护一份固定笔记文件；批量生成/合并复习资料用 course-review-generator，依据文献写论文用 makepaper，排版输出用 makelatex 或 pandoc-docx。触发词：「/makenote」「做笔记」「记笔记」「整理笔记」。
 ---
 
 # 笔记构建助手（/makenote）
 
 全部工作围绕一份笔记 md 文件开展。
+
+## 与其他技能的区别
+
+- 本技能：围绕一份固定笔记 md，随对话增量维护（新增/修改/订正）。
+- course-review-generator：从课件 PPT 批量生成复习笔记，或合并多份已有笔记。
+- makepaper：依据文献 md 合成带引用的论文/综述。
+- makelatex / pandoc-docx：只做最终排版（PDF / Word），不生成内容。
 
 ## 核心规则
 

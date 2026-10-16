@@ -1,6 +1,6 @@
 ---
 name: course-review-generator
-description: '从课程 PPT 幻灯片（PDF 格式）生成结构化的复习笔记。扫描课程目录中的 PDF 文件，按章节分批提取文字，将关键概念整理成包含表格和公式的完整 Markdown 复习文档，并可选地转换为 PDF。适用场景：根据课件制作考试复习资料、整理 PPT PDF 的课程笔记、批量将讲义 PDF 转换为学习指南。'
+description: '从课程 PPT（PDF）生成结构化复习笔记，或把多份已有的复习笔记/学习指南合并去重为一份 Markdown。支持扫描版 PDF 视觉回读与可选转 PDF。侧重复习资料本身的内容整理；交互式维护单份笔记用 makenote，依据文献写论文用 makepaper，最终排版转 PDF/Word 用 makelatex 或 pandoc-docx。'
 argument-hint: '[course directory path]'
 ---
 
@@ -19,6 +19,10 @@ Use this skill when the user requests to:
 - "Batch extract and organize course slides into notes"
 - "从课件 PDF 生成复习清单"
 - Any request involving generating structured review materials from course PPT PDFs
+- "把这几个文件合并成复习资料"
+- "整理这些复习笔记"
+- "把课文和单词分开"
+- 任何涉及「合并/去重多份已有复习笔记」的请求
 
 ## Prerequisites
 
@@ -218,6 +222,58 @@ pandoc "REVIEW_FILE.md" -o "REVIEW_FILE.pdf" `
 | Emoji missing in font | Remove emoji before conversion |
 | Chinese not rendering | Ensure `--pdf-engine=xelatex` and CJK font set |
 | `! Missing $ inserted` | Remove extra `$` escapes around math |
+
+## 模式二：合并多份复习笔记
+
+当用户要求「把这几个文件合并成复习资料」「整理这些复习笔记」「按课时合并笔记」时，走本模式（而非从 PPT 生成）。
+
+### 1. 盘点并读取候选文件
+
+```powershell
+Get-ChildItem -Path "TARGET_DIR" | Where-Object { $_.Name -match '(复习|review|笔记|note|单词|vocab|语法|grammar|课文|text)' } | Select-Object Name
+```
+
+纳入所有 AI 生成的复习笔记、零散单词表、语法总结等 `.txt` / `.md`，逐份完整读取，不跳过——每份可能含有别处没有的知识点。
+
+### 2. 识别课程结构
+
+从源文件提取教材名称、章节/课时边界、常见小节标题，建立统一大纲：
+
+```markdown
+## 第N课 标题
+### 一、基本课文
+### 二、核心语法
+### 三、表达要点
+### 四、生词表
+```
+
+### 3. 按课时与小节合并
+
+- 同一「课时+小节」：汇总所有来源条目 → 去重 → 冲突时保留信息更全的一条；
+- 生词按类别（人物/场所/物品/动词/时间…）排序；
+- 某来源缺读音/翻译时，从有该信息的来源补齐。
+
+冲突处理：同一词读音不一致 → 都有效则都保留，否则取更详细者；中文翻译不一致 → 取教材常用译法。
+
+### 4. 补充交叉信息
+
+按需追加：高频必背词表、考试冲刺重点、PDF 页码对照表、常见表达附录。
+
+### 5. 输出
+
+- 写入 `[课程名]复习资料.md`；
+- 可拆分：`[课程名]-课文.md`、`[课程名]-单词.md`。
+
+### 页码校验（可选）
+
+AI 给的页码不可信：用 PyMuPDF 把对应页渲染成 PNG，再用 `view_image` 目视核对，算出偏移量（偏移 = PDF 页码 − 书页页码）。
+
+### 输出格式规范
+
+- 表格用 Markdown 管道语法（如 `| 日语 | 读音 | 中文 |`）；
+- 生词按类别归到 `###` 小节；
+- ⭐ 标记必考、⚠ 标记易错；
+- 读音用括号附在词后：`中国人（ちゅうごくじん）`。
 
 ## Key Principles
 

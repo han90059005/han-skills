@@ -1,20 +1,19 @@
 # han-skills
 
-保存个人常用 Codex skill，长期更新。当前共收录 17 个技能，涵盖文档排版、文献管理、科研绘图与数据处理、演示文稿、以及技能与 Git 管理等方向。
+保存个人常用 Codex skill，长期更新。当前共收录 15 个技能，涵盖文档排版、文献管理、科研绘图与数据处理、演示文稿、以及技能与 Git 管理等方向。
 
 ## 技能总览
 
 | 技能 | 一句话说明 |
 | --- | --- |
-| [course-review-generator](#course-review-generator) | 从课程 PPT（PDF）生成结构化复习笔记 |
+| [course-review-generator](#course-review-generator) | 从 PPT 生成或合并复习笔记 |
 | [find-skills](#find-skills) | 发现并安装可用的 Agent 技能 |
 | [git-use](#git-use) | 连接本地项目与 GitHub 并上传（push） |
 | [gpc-plot](#gpc-plot) | 绘制高分子 GPC/SEC 色谱图 |
 | [makelatex](#makelatex) | 带交叉引用的 Markdown 转中文 LaTeX PDF |
-| [makenote](#makenote) | 围绕一份 Markdown 文件的笔记构建助手 |
-| [makepaper](#makepaper) | 依据 Markdown 资料合成带引用的中文论文 |
-| [md-latex-to-docx](#md-latex-to-docx) | Markdown/LaTeX 转符合中文论文规范的 Word |
-| [multi-source-review-consolidator](#multi-source-review-consolidator) | 合并多份复习笔记为一份结构化文档 |
+| [makenote](#makenote) | 交互式维护一份 Markdown 笔记 |
+| [makepaper](#makepaper) | 依据文献 md 合成带引用的中文论文 |
+| [pandoc-docx](#pandoc-docx) | Markdown/LaTeX 转符合中文论文规范的 Word |
 | [paper-finder](#paper-finder) | 关键词检索文献、下载 PDF 并生成 MD 备份 |
 | [pdf-reader](#pdf-reader) | 读取并提取 PDF 中的文字 |
 | [pptx](#pptx) | 创建、读取、编辑 PowerPoint 演示文稿 |
@@ -27,27 +26,23 @@
 
 ### course-review-generator
 
-从课程 PPT 幻灯片（PDF 格式）生成结构化的复习笔记。扫描课程目录中的 PDF 文件，按章节分批提取文字，将关键概念整理成包含表格和公式的完整 Markdown 复习文档，并可选地转换为 PDF。适用场景：根据课件制作考试复习资料、整理 PPT PDF 的课程笔记、批量将讲义 PDF 转换为学习指南。
+从课程 PPT（PDF）生成结构化复习笔记，或把多份已有的复习笔记/学习指南合并去重为一份 Markdown。支持扫描版 PDF 视觉回读与可选转 PDF。侧重复习资料本身的内容整理；交互式维护单份笔记用 makenote，依据文献写论文用 makepaper，最终排版转 PDF/Word 用 makelatex 或 pandoc-docx。
 
 ### makenote
 
-笔记构建助手，围绕一份以「当前工作目录名.md」命名的 Markdown 笔记文件工作。通过 /makenote 口令或直接发送文字/文件，在对话中完成笔记的新增、修改、订正与补充；课件先转 pandoc 干净格式再摘录，课本 PDF 默认不全量读取。触发词：「/makenote」「做笔记」「记笔记」「整理笔记」。
+笔记构建助手，围绕一份以「当前工作目录名.md」命名的 Markdown 笔记文件工作。通过 /makenote 口令或直接发送文字/文件，在对话中完成笔记的新增、修改、订正与补充；课件先转 pandoc 干净格式再摘录，课本 PDF 默认不全量读取。侧重交互式维护一份固定笔记文件；批量生成/合并复习资料用 course-review-generator，依据文献写论文用 makepaper，排版输出用 makelatex 或 pandoc-docx。触发词：「/makenote」「做笔记」「记笔记」「整理笔记」。
 
 ### makepaper
 
-读取指定文件夹内的 Markdown 资料（文献 md，可能只有摘要或含全文），按用户要求合成带 [n] 交叉引用的高质量中文论文，输出为可交给 makelatex 转 PDF 的 Markdown。用于依据若干 md 资料写论文/报告/综述。
+读取指定文件夹内的 Markdown 资料（文献 md，可能只有摘要或含全文），按用户要求合成带 [n] 交叉引用的高质量中文论文，输出为可交给 makelatex 转 PDF 的 Markdown。侧重依据文献写论文/综述；生成复习笔记用 course-review-generator，交互维护笔记用 makenote，排版输出用 makelatex（PDF）或 pandoc-docx（Word）。
 
 ### makelatex
 
 把带交叉引用/角标（如正文中的 [1]）的 Markdown 文档转换成排版规范的中文 PDF（LaTeX/tectonic + ctex），正文引用渲染为角标并保留参考文献表。适用于需要 LaTeX 排版的中文课程作业、报告、笔记等含 [n] 引用的 Markdown 转 PDF；不含引用的普通 Markdown 转 PDF 请直接用 pandoc。
 
-### md-latex-to-docx
+### pandoc-docx
 
-将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。适用场景：将 .md/.tex 转为 .docx、为投稿排版学术论文/学位论文、生成符合 SCI 期刊规范的 Word 文档、应用中文论文排版规范。
-
-### multi-source-review-consolidator
-
-将多份 AI 生成的复习笔记文件（txt/md）合并为一份结构化的 Markdown 复习文档。合并重复内容、去重词汇和语法知识点、按章节/课时统一排版，并可选择按类别（如语法/课文与词汇）拆分为多个文件。适用场景：合并多份 AI 生成的学习指南、把零散的复习笔记整合成一份文档、整理多个来源的课程复习资料、把合并后的复习拆分为语法和词汇部分。
+将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。核心是 pandoc 转换 + python-docx 后处理，侧重最终 Word 排版输出；生成复习笔记用 course-review-generator，依据文献写论文用 makepaper，转中文 PDF 用 makelatex。
 
 ## 文献与 PDF
 

@@ -1,6 +1,6 @@
 ---
-name: md-latex-to-docx
-description: '将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。适用场景：将 .md/.tex 转为 .docx、为投稿排版学术论文/学位论文、生成符合 SCI 期刊规范的 Word 文档、应用中文论文排版规范。'
+name: pandoc-docx
+description: '将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。核心是 pandoc 转换 + python-docx 后处理，侧重最终 Word 排版输出；生成复习笔记用 course-review-generator，依据文献写论文用 makepaper，转中文 PDF 用 makelatex。'
 user-invocable: true
 argument-hint: '[path to .md or .tex file]'
 ---
@@ -10,6 +10,11 @@ argument-hint: '[path to .md or .tex file]'
 ## 概述
 
 将用户提供的 Markdown、LaTeX 或 XeLaTeX 源文件完整转换为 Microsoft Word（.docx）格式文档，严格遵循中国学术论文、毕业论文及 SCI 期刊投稿的常见排版规范。
+
+## 与其他技能的区别
+
+- 本技能只负责「Markdown / LaTeX → Word（.docx）」的最终排版，不负责内容生成。
+- 复习笔记生成/合并 → course-review-generator；依据文献写论文 → makepaper；Markdown 转中文 PDF → makelatex。
 
 ## 触发条件
 

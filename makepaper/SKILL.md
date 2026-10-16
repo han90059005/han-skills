@@ -1,11 +1,15 @@
 ---
 name: makepaper
-description: 读取指定文件夹内的 Markdown 资料（文献 md，可能只有摘要或含全文），按用户要求合成带 [n] 交叉引用的高质量中文论文，输出为可交给 makelatex 转 PDF 的 Markdown。用于依据若干 md 资料写论文/报告/综述。
+description: 读取指定文件夹内的 Markdown 资料（文献 md，可能只有摘要或含全文），按用户要求合成带 [n] 交叉引用的高质量中文论文，输出为可交给 makelatex 转 PDF 的 Markdown。侧重依据文献写论文/综述；生成复习笔记用 course-review-generator，交互维护笔记用 makenote，排版输出用 makelatex（PDF）或 pandoc-docx（Word）。用于依据若干 md 资料写论文/报告/综述。
 ---
 
 # makepaper
 
 把一组 Markdown 资料读入后，按用户每次给出的要求合成一篇高质量中文论文：正文用 `[n]` 角标交叉引用，文末附「参考文献」表。输出为 Markdown，可直接交给 makelatex 编译成 PDF。
+
+## 与其他技能的区别
+
+本技能只负责「依据文献 md 合成论文/综述正文 + 参考文献」；复习笔记生成/合并用 course-review-generator，交互式笔记维护用 makenote，最终排版转 PDF 用 makelatex、转 Word 用 pandoc-docx。
 
 ## 每次必须确认的三项（缺一先向用户补齐，不要硬猜）
 

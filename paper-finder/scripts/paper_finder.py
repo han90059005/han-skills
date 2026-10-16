@@ -230,7 +230,7 @@ def cmd_get(args):
 
     title = args.title or meta.get("title") or doi
     abstract = abstract_by_doi(doi)
-    oa_pdf = oa_pdf_url(doi, args.mailto)
+    oa_pdf = "" if args.no_pdf else oa_pdf_url(doi, args.mailto)
     category = args.category or "未分类"
 
     outdir = os.path.join(args.output or ".", category)
@@ -267,7 +267,7 @@ def cmd_get(args):
                 os.remove(pdf_path)
             pdf_path = None
 
-    if pdf_path is None:
+    if pdf_path is None and not args.no_pdf:
         lines += [
             "",
             "## 下载",
@@ -301,6 +301,7 @@ def main():
     g.add_argument("-o", "--output", default=".")
     g.add_argument("--category", default="未分类")
     g.add_argument("--title", default=None)
+    g.add_argument("--no-pdf", action="store_true", help="只生成元数据+摘要的 md，不下载 PDF/全文")
     g.add_argument("--mailto", default=DEFAULT_MAILTO)
     g.set_defaults(func=cmd_get)
 

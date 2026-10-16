@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""把带 [n] 交叉引用的 Markdown 转成 LaTeX 并用 tectonic 编译为中文 PDF。
+"""把带 [n] 交叉引用的 Markdown 转成 LaTeX 并用 XeLaTeX 编译为中文 PDF。
 
 用法示例：
     python md_to_latex_pdf.py 输入.md --output 输出目录 \
-        --tectonic D:\\tectonic-0.17.0-x86_64-pc-windows-msvc\\tectonic.exe
+        --xelatex D:\\AI-tools\\latex\\texlive\\2026\\bin\\windows\\xelatex.exe
 """
 
 import argparse
@@ -14,7 +14,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 
 
 REF_HEADINGS = {"参考文献", "参考文献表", "references", "reference list"}
@@ -185,67 +184,24 @@ def build_tex(title, author, date, body) -> str:
     return "\n".join(out) + "\n"
 
 
-def find_tectonic(explicit=None):
+def find_xelatex(explicit=None):
     if explicit and os.path.isfile(explicit):
         return explicit
-    env = os.environ.get("TECTONIC")
+    env = os.environ.get("XELATEX")
     if env and os.path.isfile(env):
         return env
-    found = shutil.which("tectonic")
+    found = shutil.which("xelatex")
     if found:
         return found
-    for pattern in (r"D:\tectonic*\tectonic.exe", r"D:\tectonic*\*\tectonic.exe"):
+    for pattern in (
+        r"D:\AI-tools\latex\texlive\*\bin\windows\xelatex.exe",
+        r"D:\texlive\*\bin\windows\xelatex.exe",
+        r"C:\texlive\*\bin\windows\xelatex.exe",
+    ):
         for p in glob.glob(pattern):
             if os.path.isfile(p):
                 return p
     return None
-
-
-def _writable(path: str) -> bool:
-    try:
-        probe = os.path.join(path, ".codex_write_test")
-        with open(probe, "w", encoding="utf-8") as f:
-            f.write("x")
-        os.remove(probe)
-        return True
-    except OSError:
-        return False
-
-
-def resolve_cache_dir(explicit: str, tectonic: str) -> str:
-    """选择可写的宏包缓存目录。
-
-    默认缓存在 tectonic.exe 同目录的 cache；在受限沙箱下该目录可能只读，
-    此时回退到系统临时目录，并尽量从原缓存复制已有宏包，避免重复联网下载。
-    """
-    candidate = explicit or os.path.join(os.path.dirname(tectonic), "cache")
-    os.makedirs(candidate, exist_ok=True)
-    if _writable(candidate):
-        return candidate
-    fallback = os.path.join(tempfile.gettempdir(), "codex-tectonic-cache")
-    os.makedirs(fallback, exist_ok=True)
-    if os.path.isdir(candidate):
-        try:
-            for name in os.listdir(candidate):
-                src = os.path.join(candidate, name)
-                dst = os.path.join(fallback, name)
-                if os.path.isdir(src) and not os.path.exists(dst):
-                    shutil.copytree(src, dst)
-                elif os.path.isfile(src) and not os.path.exists(dst):
-                    shutil.copy2(src, dst)
-        except OSError:
-            pass
-    return fallback
-
-
-def build_env(cache_dir: str) -> dict:
-    env = os.environ.copy()
-    env["TECTONIC_CACHE_DIR"] = cache_dir
-    for key in ("HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy", "ALL_PROXY", "all_proxy"):
-        env[key] = ""
-    env["NO_PROXY"] = "*"
-    env["no_proxy"] = "*"
-    return env
 
 
 def main():
@@ -256,8 +212,7 @@ def main():
     ap.add_argument("--title", default=None)
     ap.add_argument("--author", default=None)
     ap.add_argument("--date", default=None)
-    ap.add_argument("--tectonic", default=None, help="tectonic.exe 路径")
-    ap.add_argument("--cache-dir", default=None, help="宏包缓存目录")
+    ap.add_argument("--xelatex", default=None, help="xelatex.exe 路径（不指定时自动探测）")
     ap.add_argument("--no-compile", action="store_true", help="只生成 .tex")
     args = ap.parse_args()
 
@@ -283,13 +238,22 @@ def main():
     if args.no_compile:
         return 0
 
-    tectonic = find_tectonic(args.tectonic)
-    if not tectonic:
-        print("错误：找不到 tectonic.exe，请用 --tectonic 指定路径", file=sys.stderr)
+    xelatex = find_xelatex(args.xelatex)
+    if not xelatex:
+        print("错误：找不到 xelatex.exe，请安装 TeX Live 或用 --xelatex 指定路径", file=sys.stderr)
         return 2
 
-    cache_dir = resolve_cache_dir(args.cache_dir, tectonic)
-    result = subprocess.run([tectonic, base + ".tex"], cwd=outdir, env=build_env(cache_dir))
+    result = subprocess.run(
+        [xelatex, "-interaction=nonstopmode", base + ".tex"],
+        cwd=outdir,
+    )
+    for ext in (".aux", ".log", ".out"):
+        p = os.path.join(outdir, base + ext)
+        if os.path.exists(p):
+            try:
+                os.remove(p)
+            except OSError:
+                pass
     pdf = os.path.join(outdir, base + ".pdf")
     if os.path.exists(pdf):
         print(f"已生成 {pdf}")

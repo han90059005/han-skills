@@ -22,23 +22,40 @@ Copy-Item -Path "han-skills\pdf-reader" `
 
 ## 📦 技能总览
 
-| 技能 | 分类 | 一句话说明 |
-| --- | --- | --- |
-| [course-review-generator](#course-review-generator) | 📝 文档 | 从 PPT 生成或合并复习笔记 |
-| [makenote](#makenote) | 📝 文档 | 交互式维护一份 Markdown 笔记 |
-| [makepaper](#makepaper) | 📝 文档 | 依据文献 md 合成带引用的中文论文 |
-| [makelatex](#makelatex) | 📝 文档 | 含交叉引用的 Markdown 转中文 PDF |
-| [pandoc-docx](#pandoc-docx) | 📝 文档 | Markdown/LaTeX 转中文论文规范 Word |
-| [paper-finder](#paper-finder) | 📚 文献 | 检索文献、下载 PDF、生成 MD 备份 |
-| [zotero-paper-reader](#zotero-paper-reader) | 📚 文献 | 从 Zotero 读取和分析论文 |
-| [pdf-reader](#pdf-reader) | 📚 文献 | 提取 PDF 中的文字 |
-| [gpc-plot](#gpc-plot) | 🔬 科研 | 绘制 GPC/SEC 色谱图 |
-| [raft-report-updater](#raft-report-updater) | 🔬 科研 | 实验报告自动更新与归档 |
-| [pptx](#pptx) | 🎬 演示 | 创建、读取、编辑 PowerPoint |
-| [git-use](#git-use) | 🛠️ 开发 | 本地与 GitHub 互传 |
-| [find-skills](#find-skills) | 🛠️ 开发 | 发现并安装技能 |
-| [skill-vetter](#skill-vetter) | 🛠️ 开发 | 安装技能前的安全审查 |
-| [uv-python-runner](#uv-python-runner) | 🛠️ 开发 | uv 环境下执行 Python 脚本 |
+```mermaid
+flowchart LR
+    classDef src fill:#e8f4fd,stroke:#2b6cb0,color:#1a365d
+    classDef core fill:#fefcbf,stroke:#b7791f,color:#744210
+    classDef out fill:#e6fffa,stroke:#2c7a7b,color:#234e52
+
+    subgraph P["📄 生成 Paper"]
+        direction LR
+        PF["paper-finder"]:::src --> MP["makepaper"]:::core
+        PR["pdf-reader"]:::src --> MP
+        ZM["Zotero md（待补充）"]:::src --> MP
+        TL["小工具（gpc-plot 等）"]:::core -.-> MP
+        MP --> ML1["makelatex → PDF"]:::out
+        MP --> PD1["pandoc-docx → Word"]:::out
+    end
+
+    subgraph N["📝 生成 Note"]
+        direction LR
+        PT["pptx"]:::src --> MN["makenote"]:::core
+        CR["course-review-generator"]:::src --> MN
+        PR2["pdf-reader"]:::src --> MN
+        MN --> ML2["makelatex → PDF"]:::out
+        MN --> PD2["pandoc-docx → Word"]:::out
+    end
+
+    subgraph S["🔧 生成 Skill"]
+        direction LR
+        FS["find-skills"]:::src --> SC["skill-creator"]:::core
+        SV["skill-vetter"]:::src --> SC
+        SC --> GU["git-use"]:::out
+    end
+```
+
+> 说明：`skill-creator` 为 Codex 内置技能，不在本仓库；「Zotero md」为待补充来源占位；`uv-python-runner`、`raft-report-updater`、`zotero-paper-reader` 暂未画入主线。
 
 ## 📚 技能详情
 
@@ -239,4 +256,5 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - `makelatex` 从 Tectonic 切换到 TeX Live 的 `xelatex`。
 - 安装完整 TeX Live 2026 于 `D:\AI-tools\latex\texlive\2026` 并加入 PATH。
 - README 新增「小作业速成链」示例工作流。
+- 技能总览从表格改为横向流程图（Paper / Note / Skill 三条生成主线）。
 

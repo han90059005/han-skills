@@ -2,7 +2,7 @@
 
 个人常用 Codex 技能库，长期维护、持续更新。
 
-一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **16 个技能**。
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **15 个技能**。
 
 ---
 
@@ -56,7 +56,7 @@ flowchart LR
     end
 ```
 
-> 说明：`skill-creator` 为 Codex 内置技能，不在本仓库；「Zotero md」为待补充来源占位；`uv-python-runner`、`raft-report-updater`、`zotero-paper-reader` 暂未画入主线。
+> 说明：`skill-creator` 为 Codex 内置技能，不在本仓库；「Zotero md」为待补充来源占位；`uv-python-runner`、`zotero-paper-reader` 暂未画入主线。
 
 ## 📚 技能详情
 
@@ -71,9 +71,9 @@ flowchart LR
 
 #### makenote
 
-围绕一份固定 Markdown 笔记文件，随对话增量维护（新增、修改、订正、补充），自动维护「记忆快照区」以便跨会话续写。
+交互式维护 Markdown：学习笔记模式随对话增量维护（自动维护记忆快照），实验报告模式读 Excel 数据驱动更新报告、检测矛盾，交互补写分析。
 
-- **触发**：/makenote / 做笔记 / 记笔记
+- **触发**：/makenote / 做笔记 / 更新实验报告 / 加数据
 - **相关**：批量生成复习资料用 [course-review-generator](#course-review-generator)
 
 #### makepaper
@@ -136,12 +136,6 @@ flowchart LR
 - **触发**：GPC / 色谱图 / SEC / 分子量分布
 - **依赖**：matplotlib + numpy
 
-#### raft-report-updater
-
-读取 Excel 数据与已有 Markdown 报告，检测数据变更与矛盾，重新生成完整报告并按日期归档，适合以 Entry 编号组织的实验数据。
-
-- **触发**：更新实验报告 / 加数据 / 添加实验
-
 ### 🎬 演示文稿
 
 #### pptx
@@ -202,7 +196,6 @@ han-skills/
 ├── paper-finder/
 ├── pdf-reader/
 ├── pptx/
-├── raft-report-updater/
 ├── skill-vetter/
 ├── uv-python-runner/
 └── zotero-paper-reader/
@@ -269,4 +262,5 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - `pandoc-docx` 重命名为 `makedocx`，与 makepaper / makelatex / makenote 命名对齐。
 - 内容层（makepaper、makenote）新增「输入接口（归一化）」；成品层（makelatex、makedocx）新增「运行可靠性」。
 - 新增 `makelibrary`：文献 md 打标签 + 生成集中索引；makepaper 增加按标签筛选的阅读检索入口与低/高强度机制。
+- 将 `raft-report-updater` 并入 `makenote`（成为其「模式二：实验报告」），脚本迁至 `makenote/scripts/`。
 

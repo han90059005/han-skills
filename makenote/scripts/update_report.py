@@ -480,7 +480,7 @@ def main():
         sys.exit(f"错误: 目录不存在 — {base_dir}")
 
     print("=" * 60)
-    print("实验报告更新工具 (raft-report-updater)")
+    print("实验报告更新工具（makenote 模式二）")
     print("=" * 60)
     print(f"项目目录: {base_dir}\n")
 

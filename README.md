@@ -27,13 +27,14 @@ flowchart LR
     classDef src fill:#e8f4fd,stroke:#2b6cb0,color:#1a365d
     classDef core fill:#fefcbf,stroke:#b7791f,color:#744210
     classDef out fill:#e6fffa,stroke:#2c7a7b,color:#234e52
+    classDef lib fill:#e9d8fd,stroke:#6b46c1,color:#44337a
 
     subgraph P["📄 生成 Paper"]
         direction LR
-        PF["paper-finder"]:::src --> MP["makepaper"]:::core
-        PR["pdf-reader"]:::src --> MP
-        ZM["Zotero md（待补充）"]:::src --> MP
-        ML["makelibrary（打标签）"]:::src --> MP
+        PF["paper-finder"]:::src --> ML["makelibrary"]:::lib
+        PR["pdf-reader"]:::src --> ML
+        ZM["Zotero md（待补充）"]:::src --> ML
+        ML --> MP["makepaper"]:::core
         TL["小工具（gpc-plot 等）"]:::core -.-> MP
         MP --> ML1["makelatex → PDF"]:::out
         MP --> PD1["makedocx → Word"]:::out
@@ -263,4 +264,5 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - 内容层（makepaper、makenote）新增「输入接口（归一化）」；成品层（makelatex、makedocx）新增「运行可靠性」。
 - 新增 `makelibrary`：文献 md 打标签 + 生成集中索引；makepaper 增加按标签筛选的阅读检索入口与低/高强度机制。
 - 将 `raft-report-updater` 并入 `makenote`（成为其「模式二：实验报告」），脚本迁至 `makenote/scripts/`。
+- 流程图改为四层流水线：素材 → 库（makelibrary）→ 内容 → 成品。
 

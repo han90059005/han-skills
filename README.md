@@ -247,6 +247,10 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 
 ## 📝 更新日志
 
+### 2026-10-19
+
+- gpc-plot：修复表格色条不跟随 --line-color 的问题，支持单物质同色绘制。
+
 ### 2026-10-16
 
 - 新增 `git-use` 技能：本地与 GitHub 互传的完整流程。

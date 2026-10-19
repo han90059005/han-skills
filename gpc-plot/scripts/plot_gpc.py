@@ -181,7 +181,8 @@ def make_label(meta, idx=None):
 
 
 def add_annotation_table(ax, datasets, x=0.65, y=0.96, fontfamily='Arial', fontsize=8.5,
-                         row_spacing=0.06, line_width=1.0, show_lines=True):
+                         row_spacing=0.06, line_width=1.0, show_lines=True,
+                         line_colors=None):
     """Academic-paper style GPC legend table.
     Header row: Mn | Đ
     Colored bar + values in each row.
@@ -189,7 +190,10 @@ def add_annotation_table(ax, datasets, x=0.65, y=0.96, fontfamily='Arial', fonts
     entries = []
     for i, item in enumerate(datasets):
         meta = item[2]
-        color = COLORS[i % len(COLORS)]
+        if line_colors and i < len(line_colors):
+            color = line_colors[i]
+        else:
+            color = COLORS[i % len(COLORS)]
         mn_raw = meta.get('mn')
         mn_str = f'{int(round(mn_raw, -2))}' if mn_raw else '-'
         pd_str = f"{meta['pd']:.2f}" if meta.get('pd') else '-'
@@ -297,6 +301,7 @@ def plot_overlay(datasets, output_dir, xscale, xlim=None, show_legend=True,
     global_min_rt = float('inf')
     global_max_rt = 0
     source_paths = []
+    resolved_colors = []
 
     for i, item in enumerate(datasets):
         rt, dw, meta, src = item[0], item[1], item[2], item[3]
@@ -307,6 +312,7 @@ def plot_overlay(datasets, output_dir, xscale, xlim=None, show_legend=True,
             color = line_colors[i]
         else:
             color = COLORS[i % len(COLORS)]
+        resolved_colors.append(color)
         label = make_label(meta, i)
         plot_single(ax, rt, dw, color, label, linewidth=line_width)
         if len(rt) > 0:
@@ -331,7 +337,8 @@ def plot_overlay(datasets, output_dir, xscale, xlim=None, show_legend=True,
                          fontsize=table_fontsize,
                          row_spacing=table_row_spacing,
                          line_width=table_linewidth,
-                         show_lines=show_table_lines)
+                         show_lines=show_table_lines,
+                         line_colors=resolved_colors)
 
     plt.tight_layout()
     save_outputs(fig, output_dir, 'gpc_overlay', transparent,
@@ -382,7 +389,8 @@ def plot_separate(datasets, output_dir, xscale, xlim=None,
                              fontsize=table_fontsize,
                              row_spacing=table_row_spacing,
                              line_width=table_linewidth,
-                             show_lines=show_table_lines)
+                             show_lines=show_table_lines,
+                             line_colors=[color])
 
         plt.tight_layout()
         stem = Path(meta.get('sample', f'sample_{i+1}')).stem

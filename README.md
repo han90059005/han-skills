@@ -2,7 +2,7 @@
 
 个人常用 Codex 技能库，长期维护、持续更新。
 
-一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **15 个技能**。
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **16 个技能**。
 
 ---
 
@@ -54,6 +54,11 @@ flowchart LR
         FS["find-skills"]:::src --> SC["skill-creator"]:::core
         SV["skill-vetter"]:::src --> SC
         SC --> GU["git-use"]:::out
+    end
+
+    subgraph PP["🎬 生成 PPT"]
+        direction LR
+        MD["md（实验报告/论文/大纲）"]:::src --> MKP["makeppt → PDF + pptx"]:::out
     end
 ```
 
@@ -139,6 +144,14 @@ flowchart LR
 
 ### 🎬 演示文稿
 
+#### makeppt
+
+把一个 Markdown 文件（实验报告/论文/大纲等）转成汇报 PPT，同时输出 PDF（LaTeX Beamer，默认 NWPU 模板）和可编辑 .pptx。先出提纲给用户审查，通过后智能提炼成逐页要点；文字颜色 ≤ 3 种、每页有页码、清晰可读。
+
+- **触发**：makeppt / 生成PPT / md转PPT / 做汇报PPT
+- **依赖**：TeX Live（xelatex）+ python-pptx
+- **相关**：演示文稿的「输出层」；内容生成用 [makepaper](#makepaper) / [makenote](#makenote)
+
 #### pptx
 
 创建、读取、编辑 `.pptx` 文件：文本提取、模板与版式、演讲者备注、批注、合并与拆分等。
@@ -175,7 +188,7 @@ flowchart LR
 
 | 依赖 | 用途 | 说明 |
 | --- | --- | --- |
-| Python + uv | pdf-reader、gpc-plot 等 | 系统自带 Python 3.9/3.12 或 uv 均可 |
+| Python + uv | pdf-reader、gpc-plot、makeppt（python-pptx）等 | 系统自带 Python 3.9/3.12 或 uv 均可 |
 | pandoc ≥ 3.0 | course-review-generator、makedocx | 安装于 `C:\Program Files\Pandoc` |
 | TeX Live（xelatex） | makelatex、pandoc 出 PDF | 完整版安装于 `D:\AI-tools\latex\texlive\2026` |
 | Zotero Desktop | zotero-paper-reader | 需开启本地 API |
@@ -193,6 +206,7 @@ han-skills/
 ├── makelibrary/
 ├── makenote/
 ├── makepaper/
+├── makeppt/
 ├── makedocx/
 ├── paper-finder/
 ├── pdf-reader/
@@ -246,6 +260,10 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 > 定位：摘要级引用，适合综述型小作业；需要深挖方法/数据时，第 2 步去掉 `--no-pdf` 下载全文，再用 pdf-reader 转全文。
 
 ## 📝 更新日志
+
+### 2026-10-20
+
+- 新增 `makeppt` 技能：把一个 Markdown 文件转成汇报 PPT，同时输出 PDF（LaTeX Beamer，NWPU 模板）和可编辑 .pptx；先出提纲给用户审查，通过后智能提炼成逐页要点。定位为演示文稿的「输出层」。
 
 ### 2026-10-19
 

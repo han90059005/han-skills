@@ -1,0 +1,4 @@
+interface:
+  display_name: "目录生成与优化"
+  short_description: "生成项目目录结构，或审查、优化已有目录"
+  default_prompt: "用 $dir 生成或优化一个目录。"

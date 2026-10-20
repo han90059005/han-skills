@@ -2,7 +2,7 @@
 
 个人常用 Codex 技能库，长期维护、持续更新。
 
-一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **16 个技能**。
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **17 个技能**。
 
 ---
 
@@ -184,6 +184,12 @@ flowchart LR
 
 - **触发**：uv run / pip 失败 / externally-managed-environment
 
+#### dir
+
+把一个目录打包成结构化 prompt，用于从零生成目录/项目骨架，或审查、优化已有目录；尊重 `.gitignore`，支持行号与 Markdown/XML 输出。
+
+- **触发**：生成目录 / 优化目录 / 把目录转成 prompt
+
 ## 🧱 环境依赖
 
 | 依赖 | 用途 | 说明 |
@@ -199,6 +205,7 @@ flowchart LR
 ```text
 han-skills/
 ├── course-review-generator/
+├── dir/
 ├── find-skills/
 ├── git-use/
 ├── gpc-plot/
@@ -264,6 +271,7 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 ### 2026-10-20
 
 - 新增 `makeppt` 技能：把一个 Markdown 文件转成汇报 PPT，同时输出 PDF（LaTeX Beamer，NWPU 模板）和可编辑 .pptx；先出提纲给用户审查，通过后智能提炼成逐页要点。定位为演示文稿的「输出层」。
+- 新增 `dir` 技能：把一个目录打包成结构化 prompt，用于从零生成目录/项目骨架，或审查、优化已有目录；内置纯标准库的 `snapshot.py`（尊重 .gitignore、UTF-8、Markdown/XML 输出）。
 
 ### 2026-10-19
 

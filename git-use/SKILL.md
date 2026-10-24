@@ -1,6 +1,6 @@
 ---
 name: git-use
-description: 连接本地项目与 GitHub 仓库并上传（push）的完整流程，包括 HTTPS 令牌认证、克隆/初始化后推送、.gitignore 与敏感信息检查，以及本机常见故障（schannel 报错、代理、凭据管理器卡住、dubious ownership）。触发词：「git」「github」「上传」「push」「clone」「推送到 GitHub」。
+description: 连接本地项目与 GitHub 仓库并上传（push）的完整流程，包括 HTTPS 令牌认证、克隆/初始化后推送、.gitignore 与敏感信息检查，以及本机常见故障（代理未开启导致 SSL EOF/超时、schannel 报错、凭据管理器卡住、dubious ownership）。遇到推送失败先提示用户开代理。触发词：「git」「github」「上传」「push」「clone」「推送到 GitHub」。
 ---
 
 # Git Use
@@ -75,8 +75,15 @@ git pull
 
 ## 本机常见故障（实测）
 
-1. **schannel 报错**：Windows 上 git/curl 报 `SEC_E_NO_CREDENTIALS` 时，改用 OpenSSL：`git config --global http.sslBackend openssl`。
-2. **代理**：本机代理为 `http://127.0.0.1:7897`；走代理访问 GitHub 时同样优先用 OpenSSL 后端。
+1. **代理没开（最高频，先查这条）**：症状是 `SSL routines::unexpected eof while reading`、`OpenSSL SSL_read: ... errno 10004`，或每条命令都要卡 5–20 秒才失败。
+   - 本机代理为 `http://127.0.0.1:7897`。**代理软件没开时端口仍可能在监听**，所以"端口通"不代表能出网，别用端口探测下结论。
+   - 处理：**先提醒用户开启网络代理**，再用下面命令重试；仍失败就隔几秒重试，通常第二次能过。
+
+   ```powershell
+   git -c http.proxy=http://127.0.0.1:7897 -c http.version=HTTP/1.1 push origin main
+   ```
+
+2. **schannel 报错**：Windows 上 git/curl 报 `SEC_E_NO_CREDENTIALS` 时，改用 OpenSSL：`git config --global http.sslBackend openssl`。
 3. **推送卡住**：后台出现 `git-credential-helper-selector` 进程且无输出，是凭据管理器弹窗在等待输入。绕过方式：`git -c credential.helper= -c http.version=HTTP/1.1 push ...`，并设 `GIT_TERMINAL_PROMPT=0`。
 4. **dubious ownership**：跨账户（如沙盒）操作他人目录下的仓库时报错，用 `git config --global --add safe.directory <路径>`，或单次执行加 `-c safe.directory=<路径>`。
 5. **公开仓库下载不需要令牌**，只有 push（写操作）才需要认证。

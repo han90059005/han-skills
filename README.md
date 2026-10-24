@@ -13,8 +13,8 @@
 git clone https://github.com/han90059005/han-skills.git
 
 # 2. 按需把技能复制到本地技能目录
-Copy-Item -Path "han-skills\pdf-reader" `
-          -Destination "$env:USERPROFILE\.agents\skills\pdf-reader" `
+Copy-Item -Path "han-skills\mineru" `
+          -Destination "$env:USERPROFILE\.agents\skills\mineru" `
           -Recurse -Force
 ```
 
@@ -32,7 +32,7 @@ flowchart LR
     subgraph P["📄 生成 Paper"]
         direction LR
         PF["paper-finder"]:::src --> ML["makelibrary"]:::lib
-        PR["pdf-reader"]:::src --> ML
+        PR["mineru"]:::src --> ML
         ZM["Zotero md（待补充）"]:::src --> ML
         ML --> MP["makepaper"]:::core
         TL["小工具（gpc-plot 等）"]:::core -.-> MP
@@ -44,7 +44,7 @@ flowchart LR
         direction LR
         PT["pptx"]:::src --> MN["makenote"]:::core
         CR["course-review-generator"]:::src --> MN
-        PR2["pdf-reader"]:::src --> MN
+        PR2["mineru"]:::src --> MN
         MN --> ML2["makelatex → PDF"]:::out
         MN --> PD2["makedocx → Word"]:::out
     end
@@ -119,12 +119,13 @@ flowchart LR
 - **触发**：Zotero / 读论文
 - **依赖**：Zotero Desktop 本地 API（localhost:23119）
 
-#### pdf-reader
+#### mineru
 
-提取 PDF 中的文字（中英文），尽量保留格式；文本版走 pdfplumber/pymupdf，扫描版需 OCR。
+PDF / 课件 / 扫描件 → Markdown，并按需阅读、审校公式。两条路径：文字层文档秒级直读（quickread），复杂或扫描文档走 MinerU 4.0 转换（自动选 basic / standard 档）；转换后强制剥离 base64 图片，阅读前先出结构摘要、由用户确认范围，避免烧掉大量 token。
 
-- **触发**：读 PDF / 提取 PDF 文字
-- **依赖**：uv 管理依赖
+- **触发**：读 PDF / 快速看看这篇讲什么 / 课件转笔记 / 提取文献公式 / 扫描件能不能转
+- **依赖**：MinerU 4.0 本地环境（`D:\AI-tools\mineru`，Python 3.12 + 模型约 2.55 GB）
+- **注意**：与 MinerU 官方 `mineru` skill 同名，两者不要同时安装
 
 #### makelibrary
 
@@ -194,7 +195,8 @@ flowchart LR
 
 | 依赖 | 用途 | 说明 |
 | --- | --- | --- |
-| Python + uv | pdf-reader、gpc-plot、makeppt（python-pptx）等 | 系统自带 Python 3.9/3.12 或 uv 均可 |
+| Python 3.12 + MinerU 4.0 | mineru | 独立环境 `D:\AI-tools\mineru`，模型 `D:\AI-tools\mineru-home` |
+| Python + uv | gpc-plot、makeppt（python-pptx）等 | 系统自带 Python 3.9/3.12 或 uv 均可 |
 | pandoc ≥ 3.0 | course-review-generator、makedocx | 安装于 `C:\Program Files\Pandoc` |
 | TeX Live（xelatex） | makelatex、pandoc 出 PDF | 完整版安装于 `D:\AI-tools\latex\texlive\2026` |
 | Zotero Desktop | zotero-paper-reader | 需开启本地 API |
@@ -216,7 +218,7 @@ han-skills/
 ├── makeppt/
 ├── makedocx/
 ├── paper-finder/
-├── pdf-reader/
+├── mineru/
 ├── pptx/
 ├── skill-vetter/
 ├── uv-python-runner/
@@ -264,9 +266,14 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 
 生成 `论文.pdf`，检查正文角标与文末参考文献。
 
-> 定位：摘要级引用，适合综述型小作业；需要深挖方法/数据时，第 2 步去掉 `--no-pdf` 下载全文，再用 pdf-reader 转全文。
+> 定位：摘要级引用，适合综述型小作业；需要深挖方法/数据时，第 2 步去掉 `--no-pdf` 下载全文，再用 mineru 转全文。
 
 ## 📝 更新日志
+
+### 2026-10-24
+
+- 新增 `mineru` 技能：PDF / 课件 / 扫描件转 Markdown 的完整流水线。先探测文字层决定档位（basic / standard），转换后强制剥离 base64 图片，阅读前必须出结构摘要并由用户确认范围，避免一次性烧掉上下文。含 `quickread`（秒级直读）、`render`（页面渲图供视觉核对）、`mathreview`（只抽公式并标记可疑项）。
+- 移除 `pdf-reader`：文字层秒级抽取与页面渲染两项能力已并入 `mineru`，其独立 venv 与依赖未安装的 OCR 脚本一并废弃。
 
 ### 2026-10-20
 

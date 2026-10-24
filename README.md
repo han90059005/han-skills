@@ -22,47 +22,7 @@ Copy-Item -Path "han-skills\mineru" `
 
 ## 📦 技能总览
 
-```mermaid
-flowchart LR
-    classDef src fill:#e8f4fd,stroke:#2b6cb0,color:#1a365d
-    classDef core fill:#fefcbf,stroke:#b7791f,color:#744210
-    classDef out fill:#e6fffa,stroke:#2c7a7b,color:#234e52
-    classDef lib fill:#e9d8fd,stroke:#6b46c1,color:#44337a
-
-    subgraph P["📄 生成 Paper"]
-        direction LR
-        PF["paper-finder"]:::src --> ML["makelibrary"]:::lib
-        PR["mineru"]:::src --> ML
-        ZM["Zotero md（待补充）"]:::src --> ML
-        ML --> MP["makepaper"]:::core
-        TL["小工具（gpc-plot 等）"]:::core -.-> MP
-        MP --> ML1["makelatex → PDF"]:::out
-        MP --> PD1["makedocx → Word"]:::out
-    end
-
-    subgraph N["📝 生成 Note"]
-        direction LR
-        PT["pptx"]:::src --> MN["makenote"]:::core
-        CR["course-review-generator"]:::src --> MN
-        PR2["mineru"]:::src --> MN
-        MN --> ML2["makelatex → PDF"]:::out
-        MN --> PD2["makedocx → Word"]:::out
-    end
-
-    subgraph S["🔧 生成 Skill"]
-        direction LR
-        FS["find-skills"]:::src --> SC["skill-creator"]:::core
-        SV["skill-vetter"]:::src --> SC
-        SC --> GU["git-use"]:::out
-    end
-
-    subgraph PP["🎬 生成 PPT"]
-        direction LR
-        MD["md（实验报告/论文/大纲）"]:::src --> MKP["makeppt → PDF + pptx"]:::out
-    end
-```
-
-> 说明：`skill-creator` 为 Codex 内置技能，不在本仓库；「Zotero md」为待补充来源占位；`uv-python-runner`、`zotero-paper-reader` 暂未画入主线。
+按「素材 → 库 → 内容 → 成品」四层组织：素材层（paper-finder、mineru、pptx、course-review-generator）产出 Markdown，makelibrary 建索引，内容层（makepaper、makenote）合成文稿，成品层（makelatex 出 PDF、makedocx 出 Word、makeppt 出汇报）负责排版；git-use、find-skills、skill-vetter、uv-python-runner、dir 等为工具与维护层。
 
 ## 📚 技能详情
 
@@ -91,10 +51,10 @@ flowchart LR
 
 #### makelatex
 
-把含 `[n]` 交叉引用的 Markdown 转成中文 PDF（XeLaTeX + ctex），正文引用渲染为角标并保留参考文献表。
+把含 `[n]` 交叉引用的 Markdown 转成中文 PDF（XeLaTeX + ctex）：引用自动编号并链接到文末文献表，列表、表格、公式、代码块、图片按 Markdown 语义还原，可选目录与 PDF 书签；自动多遍编译，失败时保留日志并定位到第一个错误的行号。
 
-- **触发**：Markdown 转 PDF / 含引用的文档排版
-- **依赖**：TeX Live（xelatex）
+- **触发**：Markdown 转 PDF / 含引用的文档排版 / 实验报告出 PDF
+- **依赖**：TeX Live（xelatex）；字体在 `windows` 与 `fandol` 间自动回退
 
 #### makedocx
 
@@ -272,6 +232,14 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 
 ### 2026-10-24
 
+- `makelatex` 重构（参考文献引擎 + 还原 Markdown 结构）：
+  - 参考文献改用 `thebibliography` + `\cite`，编号由 LaTeX 维护，正文角标随之同步；新增 `--bib-sort` 按首次引用顺序重排（GB/T 7714 顺序编码制）；生成时检查「引用了不存在的编号 / 文献未被引用 / 顺序不对」并提示。
+  - 列表、表格、围栏代码块、`>` 引用块、`[文字](url)` 链接、独立成行的图片按 Markdown 语义还原（此前会压成流水句、表格变竖线文本）。
+  - 编译改为自动多遍（按 `.aux` 是否稳定 + 日志 `Rerun` 决定），中间产物进 `build/` 后拷回；失败保留日志并打印 `文件:行号` 首条错误。
+  - 标题默认自动编号并写入 PDF 书签；文档里只要有一处标题自带编号就整体改为不编号，杜绝「0.1 子标题」这类错号。
+  - 新增 `--toc`（点线目录）、`--fontset auto|windows|fandol|mac`、`--keep-log`、`--verbose`；页码移到页脚居中，标题/作者写入 PDF 元数据。
+  - 图片按 md 所在目录解析，跨目录时复制到 `assets/`；图片缺失画占位框，不再中断编译。
+- README 移除「技能总览」里的 Mermaid 流程图，改为一句四层说明（维护成本高于收益）。
 - 新增 `mineru` 技能：PDF / 课件 / 扫描件转 Markdown 的完整流水线。先探测文字层决定档位（basic / standard），转换后强制剥离 base64 图片，阅读前必须出结构摘要并由用户确认范围，避免一次性烧掉上下文。含 `quickread`（秒级直读）、`render`（页面渲图供视觉核对）、`mathreview`（只抽公式并标记可疑项）。
 - 移除 `pdf-reader`：文字层秒级抽取与页面渲染两项能力已并入 `mineru`，其独立 venv 与依赖未安装的 OCR 脚本一并废弃。
 

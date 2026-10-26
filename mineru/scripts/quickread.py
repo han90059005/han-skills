@@ -5,7 +5,8 @@
   python quickread.py <pdf> [--pages 1-10] [--max-chars 20000] [--save] [--all]
 
 相比走 MinerU：3 页 <1 秒 vs 20+ 秒。适合"只想快速看一眼"。
-不适合：扫描件、公式、表格结构。
+不适合：扫描件、表格结构；公式会被抽散（常数/积分限/上下标出错），
+只能当线索——关键式用 render.py 渲染原页目视核对，别整本转 MinerU。
 
 token 闸门：默认最多输出 20000 字符（约 1 万 token），超出会截断并提示分段。
 --all 可强制全文（自担风险）。
@@ -140,8 +141,8 @@ def main():
         print(body[:max_chars])
         print("-" * 60)
         print(f"[已截断] 全文 {len(body)} 字符，只显示前 {max_chars}。")
-        print(f"需要更多 → 用 --pages 指定范围，或 --max-chars 调高。")
-        print(f"这是长文档，建议改用 mineru 全流程（有清洗与结构摘要）。")
+        print(f"需要更多 → 用 --pages 指定范围、调高 --max-chars，或加 --save 落 txt 再用 read 分段。")
+        print(f"公式密集再对可疑页 render 核对（1 秒/页）；全量 MinerU 只在要可交付 LaTeX 时才划算。")
     else:
         print(body)
 

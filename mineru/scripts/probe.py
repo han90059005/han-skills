@@ -99,7 +99,13 @@ def main():
         pct = result["coverage"] * 100
         print(f"判定: {result['verdict']} | {result['pages']} 页 | "
               f"文字层覆盖率 {pct:.0f}% -> 档位 {result['tier']}")
-        print("若判定为 mixed，注意 basic 在扫描页上会错下标，统一用 standard。")
+        if result["verdict"] == "mixed":
+            print("mixed：basic 在扫描页上会错下标，统一用 standard。")
+        else:
+            pages = result["pages"] or 0
+            print(f"若全量跑 basic：约 {pages * 25 / 60:.0f} 分钟（{pages} 页 × 25 s/页）。")
+            print("只想读懂内容 → 先走路径 A+：quickread 秒读全文 + render 定点核对公式页（1 秒/页）；")
+            print("需要可交付的 LaTeX / 表格结构产物时才值得整本转。")
 
 
 if __name__ == "__main__":

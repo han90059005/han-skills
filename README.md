@@ -230,6 +230,14 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 
 ## 📝 更新日志
 
+### 2026-10-26
+
+- `mineru` 按实战反馈优化（4 份高分子物理课件、292 页实测）：
+  - 新增**路径 A+**：文字层课件（PPT 转 PDF、讲义）默认走「`quickread` 秒读全文 + 公式页定点 `render` 核对」，不再把「抽公式、转笔记」等同于全量 MinerU；`probe` 现在按页数算出「约 N 分钟」提示性价比，`quickread` 截断提示改为指向 `--save` + `read` 分段。
+  - 环境常量补 `$env:PYTHONIOENCODING="utf-8"`：中文路径乱码实测只有它管用，`[Console]::OutputEncoding` 无效。
+  - `render` 的临时核对输出改到 `$env:TEMP\pdfcheck`，用完即删，不再往课件/资料目录丢 `_pages/`。
+  - 档位实测表新增「292 页 / 未跑 / 约 2 h 不值」，并写明「页数 × 25 s，超 20 页先考虑 A+」；补齐两条坑：页数以 `probe` 为准（`pdftotext` 尾部多一页空壳）、`quickread` 抽出的公式只当线索（常数项会丢）。
+
 ### 2026-10-24
 
 - `makelatex` 重构（参考文献引擎 + 还原 Markdown 结构）：

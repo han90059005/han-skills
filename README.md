@@ -44,9 +44,9 @@ Copy-Item -Path "han-skills\mineru" `
 
 #### makepaper
 
-读取文献 Markdown，合成带 `[n]` 角标引用的高质量中文论文/综述，输出可直接交给 makelatex 的 Markdown。
+读取文献 Markdown，合成或修改带 `[n]` 角标引用的高质量中文论文/综述，输出可直接交给 makelatex 的 Markdown。写作时区分实验观察、作者机制解释与综合推断，核查引用是否支持具体主张、多个来源是否独立，避免虚假共识、材料/条件混淆与因果跳跃。
 
-- **触发**：依据 md 资料写论文 / 综述
+- **触发**：依据 md 资料写论文 / 综述；修改、润色、重构已有论文
 - **相关**：排版用 [makelatex](#makelatex)（PDF）或 [makedocx](#makedocx)（Word）
 
 #### makelatex
@@ -67,7 +67,7 @@ Copy-Item -Path "han-skills\mineru" `
 
 #### paper-finder
 
-按关键词检索学术文献，校验元数据，分类下载开放获取 PDF，并生成 Markdown 内容备份。
+按关键词检索学术文献，校验元数据，按 DOI/标题合并重复记录，标注来源类型（原始研究 / 综述 / 预印本）与证据级别（摘要级 / 全文级），分类下载开放获取 PDF，并生成 Markdown 内容备份。
 
 - **触发**：查文献 / 下载 PDF
 - **依赖**：校园网环境
@@ -214,7 +214,7 @@ py C:\Users\admin\.agents\skills\paper-finder\scripts\paper_finder.py search "�
 py C:\Users\admin\.agents\skills\paper-finder\scripts\paper_finder.py get <DOI> -o literature --category 分类 --no-pdf
 ```
 
-生成的 md 以 `## 摘要` 标记，makepaper 能直接识别为「摘要级」来源。
+生成的 md 含 `**来源类型**` / `**证据级别**` 与 `## 摘要` 标记，makepaper 能直接识别为「摘要级」来源。
 
 3. **合成论文**（makepaper）：让 Codex 读取 `literature` 里的 md，按题目要求写中文论文，输出 `论文.md`（带 `[n]` 角标引用）。
 
@@ -229,6 +229,22 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 > 定位：摘要级引用，适合综述型小作业；需要深挖方法/数据时，第 2 步去掉 `--no-pdf` 下载全文，再用 mineru 转全文。
 
 ## 📝 更新日志
+
+### 2026-10-28
+
+- `makepaper` 增加证据与因果约束（输出格式、引用格式与调用链不变）：
+  - 新增**证据分级**：A 直接观察 / B 作者解释 / C 综合推断 / D 无法核实；摘要级来源不得写成全文证实，不补造实验细节。
+  - 新增**多来源不等于多证据**：按 DOI、标题、版本、综述转述识别同一研究；二手来源不计独立证据；冲突保留并说明条件差异。
+  - 新增**因果审查**：观察—关联—解释—机制—因果结论五层，配套措辞对照；证据充分时保留强结论，不机械弱化。
+  - 新增**主张—引用可追溯**检查清单，以及「修改已有文章」模式（先修论证再润色，保留数据、编号、术语与结构）。
+  - 新增**数值逐字核对**：数值、单位、温度、时间、比例必须能在源 md 中逐字找到，相近材料逐项对表（由盲测暴露的 Ag₂Se/Ag₂S 数值误抄触发）。
+  - 新增**成本控制**：低强度轻检查、高强度定向补检；证据不足标 D 并停止推断。
+- `paper-finder` 配合记录证据边界：
+  - `get` 生成的 md 新增 `**来源类型**` 与 `**证据级别**`（摘要级 / 全文级 / 仅元数据）；综述标注为二手来源。
+  - `search` 按 DOI（优先）或规范化标题合并重复记录，清单顶部报告合并条数，JSON 只保留唯一记录。
+  - `search` 清单新增来源类型字段与「摘要级线索」提示。
+- 新增 `makepaper/tests/`：6 个固定行为用例（宣传性摘要、相关当因果、重复来源、材料混淆、旧文修改、仅摘要），附预期行为清单。
+- 新增 `paper-finder/tests/test_dedupe.py`：4 个离线单元测试（DOI 大小写、无 DOI 同题合并、同题不同 DOI 保留、来源类型映射）。
 
 ### 2026-10-26
 

@@ -72,6 +72,71 @@ def norm_doi(doi: str) -> str:
     return doi.strip()
 
 
+# 来源类型：OpenAlex / Crossref 的 type 字段归一化，供 makepaper 判断「原始研究 / 综述 / 预印本」。
+TYPE_LABELS = {
+    "article": "期刊论文",
+    "journal-article": "期刊论文",
+    "review": "综述",
+    "preprint": "预印本",
+    "posted-content": "预印本",
+    "proceedings-article": "会议论文",
+    "book-chapter": "图书章节",
+    "book": "图书",
+    "dissertation": "学位论文",
+    "report": "报告",
+    "dataset": "数据集",
+    "software": "软件",
+    "letter": "通讯/快报",
+    "editorial": "社论",
+    "erratum": "勘误",
+    "paratext": "其他（非研究性）",
+    "peer-review": "同行评审记录",
+    "component": "其他",
+}
+
+
+def type_label(raw: str) -> str:
+    if not raw:
+        return "未知"
+    return TYPE_LABELS.get(raw.lower(), raw)
+
+
+def title_key(title: str) -> str:
+    return re.sub(r"[^\w\u4e00-\u9fff]+", "", (title or "").lower())
+
+
+def dedupe_results(results: list):
+    """按 DOI（优先）或规范化标题合并重复记录；保留首次出现。
+
+    返回 (去重后的列表, 合并条数)。DOI/标题相同通常意味着同一研究的不同版本或重复条目；
+    合并后不应再被当作多份独立证据。两条记录都有 DOI 但不同，则视为不同研究，不合并。
+    """
+    seen_doi = set()
+    seen_title = {}  # 规范化标题 -> 首次出现记录的 DOI（可能为空）
+    unique = []
+    dropped = 0
+    for r in results:
+        doi = (r.get("doi") or "").strip().lower()
+        tk = title_key(r.get("title", ""))
+        duplicate = False
+        if doi and doi in seen_doi:
+            duplicate = True
+        elif tk and tk in seen_title:
+            prev_doi = seen_title[tk]
+            # 双方都有 DOI 且不同 -> 不同研究；否则视为同一研究的重复记录
+            if not doi or not prev_doi or prev_doi == doi:
+                duplicate = True
+        if duplicate:
+            dropped += 1
+            continue
+        if doi:
+            seen_doi.add(doi)
+        if tk:
+            seen_title.setdefault(tk, doi)
+        unique.append(r)
+    return unique, dropped
+
+
 def search_openalex(keyword: str, limit: int, mailto: str):
     q = urllib.parse.quote(keyword)
     url = f"https://api.openalex.org/works?search={q}&per-page={limit}&mailto={urllib.parse.quote(mailto)}"
@@ -121,7 +186,13 @@ def crossref_meta(doi: str) -> dict:
             year = dp[0][0]
             break
     journal = (m.get("container-title") or [""])[0]
-    return {"title": title, "authors": authors, "year": year, "journal": journal}
+    return {
+        "title": title,
+        "authors": authors,
+        "year": year,
+        "journal": journal,
+        "type": m.get("type") or "",
+    }
 
 
 def abstract_by_doi(doi: str) -> str:
@@ -190,6 +261,7 @@ def extract_pdf_text(pdf_path: str) -> str:
 
 def cmd_search(args):
     results = search_openalex(args.keyword, args.limit, args.mailto)
+    results, dropped = dedupe_results(results)
     outdir = args.output or "."
     os.makedirs(outdir, exist_ok=True)
     slug = slugify(args.keyword, 50)
@@ -199,6 +271,10 @@ def cmd_search(args):
         json.dump(results, f, ensure_ascii=False, indent=2)
 
     lines = [f"# 检索结果：{args.keyword}", ""]
+    lines.append("> 以下为检索清单（摘要级线索），不是全文结论；同一 DOI/标题的重复记录已合并，合并后仍不等于独立研究。")
+    if dropped:
+        lines.append(f"> 本次按 DOI/标题合并重复记录 {dropped} 条。")
+    lines.append("")
     for i, r in enumerate(results, 1):
         lines.append(f"## [{i}] {r['title']}")
         if r["authors"]:
@@ -207,6 +283,8 @@ def cmd_search(args):
             lines.append(f"- 年份：{r['year']}")
         if r["journal"]:
             lines.append(f"- 期刊：{r['journal']}")
+        if r.get("type"):
+            lines.append(f"- 类型：{type_label(r['type'])}")
         if r["doi"]:
             lines.append(f"- DOI：{r['url']}")
         if r["oa_pdf"]:
@@ -226,7 +304,7 @@ def cmd_get(args):
     try:
         meta = crossref_meta(doi)
     except Exception:
-        meta = {"title": args.title or doi, "authors": [], "year": None, "journal": ""}
+        meta = {"title": args.title or doi, "authors": [], "year": None, "journal": "", "type": ""}
 
     title = args.title or meta.get("title") or doi
     abstract = abstract_by_doi(doi)
@@ -245,10 +323,13 @@ def cmd_get(args):
     if meta.get("journal"):
         lines.append(f"**期刊**：{meta['journal']}")
     lines.append(f"**DOI**：https://doi.org/{doi}")
-    if abstract:
-        lines += ["", "## 摘要", "", abstract]
+    stype = type_label(meta.get("type"))
+    lines.append(f"**来源类型**：{stype}")
+    if stype == "综述":
+        lines.append("**说明**：综述为二手来源，具体实验数据应回引原始研究。")
 
     pdf_path = None
+    full_text = ""
     if oa_pdf:
         try:
             pdf_path = os.path.join(outdir, slug + ".pdf")
@@ -256,9 +337,7 @@ def cmd_get(args):
             with open(pdf_path, "rb") as fh:
                 head = fh.read(4)
             if head == b"%PDF":
-                full = extract_pdf_text(pdf_path)
-                if full:
-                    lines += ["", "## 全文（自动提取）", "", full]
+                full_text = extract_pdf_text(pdf_path)
             else:
                 os.remove(pdf_path)
                 pdf_path = None
@@ -266,6 +345,19 @@ def cmd_get(args):
             if pdf_path and os.path.exists(pdf_path):
                 os.remove(pdf_path)
             pdf_path = None
+
+    if full_text:
+        evidence = "全文级（自动提取，未经人工核对；引用具体数据前核对原文）"
+    elif abstract:
+        evidence = "摘要级（仅摘要，未获取全文；不能据此推断实验细节、统计或对照）"
+    else:
+        evidence = "仅元数据（摘要与全文均未获取）"
+    lines += ["", f"**证据级别**：{evidence}"]
+
+    if abstract:
+        lines += ["", "## 摘要", "", abstract]
+    if full_text:
+        lines += ["", "## 全文（自动提取）", "", full_text]
 
     if pdf_path is None and not args.no_pdf:
         lines += [

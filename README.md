@@ -243,8 +243,9 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
   - `get` 生成的 md 新增 `**来源类型**` 与 `**证据级别**`（摘要级 / 全文级 / 仅元数据）；综述标注为二手来源。
   - `search` 按 DOI（优先）或规范化标题合并重复记录，清单顶部报告合并条数，JSON 只保留唯一记录。
   - `search` 清单新增来源类型字段与「摘要级线索」提示。
+  - 新增 Crossref / OpenAlex 元数据清洗：去掉标题、期刊名里的 `<sub>`、`&amp;` 等 HTML 标签与实体，避免写进 md 和文件名。
 - 新增 `makepaper/tests/`：6 个固定行为用例（宣传性摘要、相关当因果、重复来源、材料混淆、旧文修改、仅摘要），附预期行为清单。
-- 新增 `paper-finder/tests/test_dedupe.py`：4 个离线单元测试（DOI 大小写、无 DOI 同题合并、同题不同 DOI 保留、来源类型映射）。
+- 新增 `paper-finder/tests/test_dedupe.py`：5 个离线单元测试（去重、同题不同 DOI、来源类型映射、元数据清洗）。
 
 ### 2026-10-26
 

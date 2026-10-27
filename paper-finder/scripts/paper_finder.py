@@ -12,6 +12,7 @@
 """
 
 import argparse
+import html
 import json
 import os
 import re
@@ -70,6 +71,12 @@ def norm_doi(doi: str) -> str:
         if doi.lower().startswith(prefix.lower()):
             doi = doi[len(prefix):]
     return doi.strip()
+
+
+def clean_text(s: str) -> str:
+    """去掉 Crossref/OpenAlex 元数据里的 HTML 标签与实体（如 <sub>2</sub>、&amp;）。"""
+    s = re.sub(r"<[^>]+>", "", s or "")
+    return html.unescape(s).strip()
 
 
 # 来源类型：OpenAlex / Crossref 的 type 字段归一化，供 makepaper 判断「原始研究 / 综述 / 预印本」。
@@ -145,18 +152,18 @@ def search_openalex(keyword: str, limit: int, mailto: str):
     for w in data.get("results", []):
         doi = norm_doi(w.get("doi") or "")
         authors = [
-            (a.get("author") or {}).get("display_name", "")
+            clean_text((a.get("author") or {}).get("display_name", ""))
             for a in w.get("authorships", [])
             if (a.get("author") or {}).get("display_name")
         ]
         source = (w.get("primary_location") or {}).get("source") or {}
-        journal = source.get("display_name", "")
+        journal = clean_text(source.get("display_name", ""))
         oa = w.get("open_access") or {}
         best = w.get("best_oa_location") or {}
         oa_pdf = best.get("pdf_url") or oa.get("oa_url") or ""
         results.append(
             {
-                "title": w.get("display_name", ""),
+                "title": clean_text(w.get("display_name", "")),
                 "authors": authors,
                 "year": w.get("publication_year"),
                 "journal": journal,
@@ -174,9 +181,9 @@ def search_openalex(keyword: str, limit: int, mailto: str):
 def crossref_meta(doi: str) -> dict:
     url = f"https://api.crossref.org/works/{urllib.parse.quote(doi)}"
     m = http_get_json(url).get("message", {})
-    title = (m.get("title") or [""])[0]
+    title = clean_text((m.get("title") or [""])[0])
     authors = [
-        f"{a.get('given', '')} {a.get('family', '')}".strip()
+        clean_text(f"{a.get('given', '')} {a.get('family', '')}".strip())
         for a in m.get("author", [])
     ]
     year = None
@@ -185,7 +192,7 @@ def crossref_meta(doi: str) -> dict:
         if dp and dp[0]:
             year = dp[0][0]
             break
-    journal = (m.get("container-title") or [""])[0]
+    journal = clean_text((m.get("container-title") or [""])[0])
     return {
         "title": title,
         "authors": authors,

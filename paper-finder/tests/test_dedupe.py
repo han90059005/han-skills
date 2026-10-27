@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""paper-finder 离线单元测试：检索结果去重与来源类型映射（不联网）。"""
+"""paper-finder 离线单元测试：去重、来源类型与元数据清洗（不联网）。"""
 import importlib.util
 import pathlib
 import unittest
@@ -38,6 +38,16 @@ class DedupeTest(unittest.TestCase):
         self.assertEqual(pf.type_label("journal-article"), "期刊论文")
         self.assertEqual(pf.type_label("posted-content"), "预印本")
         self.assertEqual(pf.type_label(""), "未知")
+
+
+class CleanTextTest(unittest.TestCase):
+    def test_strips_tags_and_entities(self):
+        self.assertEqual(
+            pf.clean_text("Flexible Ag<sub>2</sub>Se &amp; film"),
+            "Flexible Ag2Se & film",
+        )
+        self.assertEqual(pf.clean_text(None), "")
+        self.assertEqual(pf.clean_text("  title  "), "title")
 
 
 if __name__ == "__main__":

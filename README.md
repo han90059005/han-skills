@@ -247,6 +247,7 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - 新增 `makepaper/tests/`：6 个固定行为用例（宣传性摘要、相关当因果、重复来源、材料混淆、旧文修改、仅摘要），附预期行为清单。
 - 新增 `paper-finder/tests/test_dedupe.py`：5 个离线单元测试（去重、同题不同 DOI、来源类型映射、元数据清洗）。
 - `makelatex` 修复多行作者信息只保留最后一人的问题：姓名、学号分两行时合并渲染，不再用学号覆盖姓名。
+- `makelatex` 章节标题改为默认左对齐：`\section` / `\subsection` / `\subsubsection` 与正文左边界对齐，不再居中；文档主标题仍居中。
 
 ### 2026-10-26
 

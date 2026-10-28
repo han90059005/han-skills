@@ -43,6 +43,7 @@ python scripts/md_to_latex_pdf.py 输入.md --output 输出目录
 
 ## 标题编号规则
 
+- 章节标题（`\section` / `\subsection` / `\subsubsection`）默认左对齐，与正文一致；文档主标题仍居中。
 - 文档里所有标题都没有自带编号 → 自动编号（`\section{…}`），并进目录与 PDF 书签。
 - 只要有一处标题自带编号（如 `## 1.2 方法`、`## 二、结果`）→ 认为编号由作者自己维护，全部标题改为不编号，避免出现「0.1 子标题」这类半自动错号。
 - `--star-sections` 强制不编号。

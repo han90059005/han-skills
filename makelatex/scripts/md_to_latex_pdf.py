@@ -463,6 +463,11 @@ def build_tex(title, author, date, body, has_refs: bool, fontset: str, toc: bool
     out.append(r"\fancyhf{}")
     out.append(r"\fancyfoot[C]{\thepage}")
     out.append(r"\renewcommand{\headrulewidth}{0pt}")
+    out.append(r"\ctexset{")
+    out.append(r"  section = {format = \Large\bfseries\raggedright},")
+    out.append(r"  subsection = {format = \large\bfseries\raggedright},")
+    out.append(r"  subsubsection = {format = \normalsize\bfseries\raggedright},")
+    out.append(r"}")
     out.append("")
     if has_refs:
         out.append(BIB_ENV_OVERRIDE.strip())

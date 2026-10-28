@@ -152,14 +152,15 @@ def parse_md(text: str):
         title = lines[i].lstrip()[2:].strip()
         i += 1
 
-    author = date = None
+    author_lines = []
+    date = None
     while i < len(lines):
         s = lines[i].strip()
         if not s:
             i += 1
             continue
         if re.search(r"(姓名|学号|作者|Author)", s):
-            author = s
+            author_lines.append(s)
             i += 1
             continue
         if re.search(r"(日期|Date|date)", s):
@@ -167,6 +168,8 @@ def parse_md(text: str):
             i += 1
             continue
         break
+
+    author = "　".join(author_lines) if author_lines else None
 
     rest = lines[i:]
     ref_idx = None

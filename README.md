@@ -234,6 +234,18 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 
 ## 📝 更新日志
 
+### 2026-11-12
+
+- `paper-finder` 增加取图能力（`scripts/fetch_figures.py`）：
+  - 内置 ACS / Wiley / Elsevier / RSC 四家取图规则；ACS 去掉 CDN 的 `/m_` 前缀可取原图。
+  - 按 300 dpi 可印宽度判定合格（默认 8 cm），不合格的图不进入正文。
+  - 图注从 DOM 提取并清洗出版社界面文字与版权尾巴。
+  - `--numbered-only` 只取带图号的图（组图用）；`--write-back` 把图回填到文献 md 的「插图」一节。
+- `makepaper` 增加两个脚本：
+  - `scripts/compose_figures.py`：组图排版（等高、按行、自动编号、量尺寸）。
+  - `scripts/tex_to_md.py`：LaTeX 源导出 Markdown，按 `paper.bbl` 顺序编号。
+- 同步此前未提交的改动：`markwebdown` 技能、`makedocx` 的 NWPU 模板、`makenote` 与 `makedocx` 的 SKILL.md。
+
 ### 2026-10-28
 
 - `makepaper` 增加证据与因果约束（输出格式、引用格式与调用链不变）：
@@ -302,7 +314,3 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - 新增 `makelibrary`：文献 md 打标签 + 生成集中索引；makepaper 增加按标签筛选的阅读检索入口与低/高强度机制。
 - 将 `raft-report-updater` 并入 `makenote`（成为其「模式二：实验报告」），脚本迁至 `makenote/scripts/`。
 - 流程图改为四层流水线：素材 → 库（makelibrary）→ 内容 → 成品。
-
-## 🗒 更新日志
-
-- **2026-11-12**　paper-finder 增加取图能力（`fetch_figures.py`：四家出版社取图规则、分辨率判定、图注提取、回填文献 md）；makepaper 增加组图与 LaTeX 导出脚本（`compose_figures.py`、`tex_to_md.py`）；同步 markwebdown、makedocx 模板等未提交改动。

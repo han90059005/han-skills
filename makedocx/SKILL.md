@@ -1,6 +1,6 @@
 ---
 name: makedocx
-description: '将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。核心是 pandoc 转换 + python-docx 后处理，侧重最终 Word 排版输出；生成复习笔记用 course-review-generator，依据文献写论文用 makepaper，转中文 PDF 用 makelatex。'
+description: '将 Markdown、LaTeX 或 XeLaTeX 文档转换为符合中文论文规范的完整 Microsoft Word（.docx）文件。应用正确的字体（宋体、Times New Roman、Arial）、标题字号（三号/四号/小四）、1.5 倍行距、图表标题格式、三线表、OMML 公式和参考文献格式。核心是 pandoc 转换 + python-docx 后处理，侧重最终 Word 排版输出；生成复习笔记用 course-review-generator，依据文献写论文用 makepaper，转中文 PDF 用 makelatex。支持西北工业大学本科毕业设计专用格式（nwpu-thesis 规则集）。'
 user-invocable: true
 argument-hint: '[path to .md or .tex file]'
 ---
@@ -28,6 +28,51 @@ argument-hint: '[path to .md or .tex file]'
 - 用户要求按学术论文格式排版 Word 文档
 - 用户提到"三线表"、"宋体小四"、"黑体三号"等中文学术排版术语
 - 用户要求生成投稿级 Word 文档
+
+## 格式规则集（Profile）与路由
+
+本技能内置两套格式规则集。动手前先判定用哪一套；判据是**交付物类型**，不是「用户是不是西工大的」。
+
+| 规则集 | 适用交付物 | 默认 |
+|------|------|------|
+| `generic-academic` | 课程报告、实验报告、作业、期刊投稿、只说「排版一下」 | ✅ |
+| `nwpu-thesis` | 西工大本科毕业设计论文，按学校格式交 Word | |
+
+### 判定表
+
+| 用户表述 | 判定 |
+|------|------|
+| 「毕设 / 毕业设计 / 毕业论文，按学校格式」「答辩稿 Word」 | `nwpu-thesis` |
+| 同时出现「三线表 + 公式编号右对齐 + 每章另起一页 + 图表按章编号」 | `nwpu-thesis` |
+| 「课程报告」「实验报告」「周报」「小论文排版」 | `generic-academic` |
+| 只提「西工大」但交付物是课程报告 / 作业 | `generic-academic` |
+
+判不出来时问一句：「这份是毕设要交学校的格式，还是课程作业？」——不要猜。
+
+### nwpu-thesis 规则集
+
+规范原文与实现都在 `profiles/nwpu-thesis/`：
+
+- `SPEC.md` —— 规范原文（来自 `zhangsiacheng-ops/NWPU-Markdown-To-Word-Thesis` 的 `runtime/SKILL.md`，同步于该仓库 2026-05-23 提交）
+- `scripts/export_thesis_docx.py` —— 唯一入口，pandoc 转换与 OOXML 后处理都在其中
+- `assets/reference.docx` —— 学校模板，必须作为 `--reference-doc` 传入
+- `scripts/word_postprocess.ps1` —— Word COM 收尾（可选，需本机装 Word）
+
+```powershell
+python "profiles\nwpu-thesis\scripts\export_thesis_docx.py" `
+  --input "<input.md>" --output "<output.docx>" `
+  --reference "profiles\nwpu-thesis\assets\reference.docx"
+```
+
+相对路径按本 SKILL.md 所在目录解析。
+
+**走 nwpu-thesis 时不要叠加下面的通用后处理。** 两套规则冲突：nwpu 要求标题黑体**不加粗**、段前段后为 0（用空行撑开）、章标题强制分页、公式编号用无框两列表格推到最右；通用 `format_academic_docx.py` 会把加粗、段前段后、1.5 倍行距又改回去。
+
+已知边界：
+
+- 不生成目录页，导出后需在 Word 里手动插入并更新目录。
+- 图题只认 Markdown 图片的 alt 文本；紧跟图片的 `Figure x-x ...` 行会被丢弃。
+- 需要本机装 pandoc；Word COM 可选。
 
 ## 核心原则
 
@@ -190,6 +235,13 @@ argument-hint: '[path to .md or .tex file]'
 ---
 
 ## 工作流程
+
+### Phase 0: 判定格式规则集
+
+按上文「格式规则集（Profile）与路由」判定：
+
+- `generic-academic` → 继续 Phase 1–4，使用本文档下方的字号/字体规范与 `format_academic_docx.py`。
+- `nwpu-thesis` → 直接调用 `profiles/nwpu-thesis/scripts/export_thesis_docx.py`，**跳过** Phase 2–4 的通用 pandoc 参数与后处理，收尾按 `profiles/nwpu-thesis/SPEC.md` 的 Validation 清单执行。
 
 ### Phase 1: 源文件判断
 

@@ -221,33 +221,41 @@ def abstract_by_doi(doi: str) -> str:
     return ""
 
 
+def oa_locations(doi: str, mailto: str) -> dict:
+    """返回开放获取位置：{"pdf": PDF 直链, "landing": 落地页/HTML 全文页}。
+
+    网页版优先于 PDF：HTML 转出来的 Markdown 有段落和标题层级，比 PDF 抽文本干净。
+    """
+    out = {"pdf": "", "landing": ""}
+    work = {}
+    try:
+        work = http_get_json(f"https://api.openalex.org/works/https://doi.org/{urllib.parse.quote(doi)}")
+    except Exception:
+        work = {}
+    best = work.get("best_oa_location") or {}
+    out["pdf"] = (best.get("pdf_url") or "").strip()
+    out["landing"] = (best.get("landing_page_url") or "").strip()
+    if not out["landing"]:
+        oa_url = ((work.get("open_access") or {}).get("oa_url") or "").strip()
+        if oa_url and not oa_url.lower().endswith(".pdf"):
+            out["landing"] = oa_url
+    if not out["pdf"]:
+        try:
+            u = http_get_json(
+                f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi)}?email={urllib.parse.quote(mailto)}"
+            )
+            loc = u.get("best_oa_location") or {}
+            out["pdf"] = (loc.get("url_for_pdf") or "").strip()
+            out["landing"] = out["landing"] or (loc.get("url") or "").strip()
+        except Exception:
+            pass
+    if not out["pdf"] and out["landing"].lower().endswith(".pdf"):
+        out["pdf"], out["landing"] = out["landing"], ""
+    return out
+
+
 def oa_pdf_url(doi: str, mailto: str) -> str:
-    work_url = f"https://api.openalex.org/works/https://doi.org/{urllib.parse.quote(doi)}"
-    # 1. OpenAlex 直接给出的 PDF 链接（字段本身就是 PDF）
-    try:
-        w = http_get_json(work_url)
-        pdf = ((w.get("best_oa_location") or {}).get("pdf_url") or "").strip()
-        if pdf:
-            return pdf
-    except Exception:
-        pass
-    # 2. Unpaywall 的 url_for_pdf（字段本身就是 PDF）
-    try:
-        u = http_get_json(f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi)}?email={urllib.parse.quote(mailto)}")
-        loc = u.get("best_oa_location") or {}
-        pdf = (loc.get("url_for_pdf") or "").strip()
-        if pdf:
-            return pdf
-    except Exception:
-        pass
-    # 3. 仅当 OpenAlex 的 oa_url 看起来是 PDF 才采用
-    try:
-        oa_url = ((w.get("open_access") or {}).get("oa_url") or "").strip()
-        if oa_url.lower().endswith(".pdf"):
-            return oa_url
-    except Exception:
-        pass
-    return ""
+    return oa_locations(doi, mailto)["pdf"]
 
 
 def extract_pdf_text(pdf_path: str) -> str:
@@ -263,7 +271,210 @@ def extract_pdf_text(pdf_path: str) -> str:
                     return "\n\n".join((p.extract_text() or "") for p in pdf.pages)
         except Exception:
             continue
+    # 最后一条路：poppler 的 pdftotext（makelatex 那套环境里通常已有）
+    try:
+        import shutil
+        import subprocess
+
+        exe = shutil.which("pdftotext")
+        if exe:
+            out = subprocess.run(
+                [exe, "-layout", pdf_path, "-"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=120,
+            )
+            if out.returncode == 0 and out.stdout.strip():
+                return out.stdout
+    except Exception:
+        pass
     return ""
+
+
+# ---------------------------------------------------------------- markwebdown
+
+MARKWEBDOWN_WRAPPER = os.path.expanduser("~/.agents/skills/markwebdown/scripts/markwebdown")
+MARKWEBDOWN_PY = os.path.expanduser("~/.agents/skills/markwebdown/scripts/fetch_md.py")
+CRAWL4AI_PY = os.path.expanduser("~/AppData/Roaming/uv/tools/crawl4ai/Scripts/python.exe")
+
+
+def _markwebdown_cmd() -> list:
+    """优先用 markwebdown 的 bash 启动器，退回到 crawl4ai 解释器直接跑脚本。"""
+    import shutil
+
+    explicit = os.environ.get("MARKWEBDOWN_BIN")
+    if explicit:
+        bash = shutil.which("bash")
+        return [bash, explicit] if bash else [explicit]
+    bash = shutil.which("bash")
+    if bash and os.path.exists(MARKWEBDOWN_WRAPPER):
+        return [bash, MARKWEBDOWN_WRAPPER]
+    if os.path.exists(CRAWL4AI_PY) and os.path.exists(MARKWEBDOWN_PY):
+        return [CRAWL4AI_PY, MARKWEBDOWN_PY]
+    return []
+
+
+def strip_frontmatter(text: str) -> dict:
+    """拆 markwebdown 的 frontmatter，返回 (meta, body)。"""
+    meta = {}
+    body = text
+    if text.startswith("---\n"):
+        end = text.find("\n---", 4)
+        if end != -1:
+            block = text[4:end]
+            body = text[end + 4 :].lstrip("\n")
+            for line in block.splitlines():
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    meta[k.strip()] = v.strip().strip('"')
+    return meta, body
+
+
+BOILERPLATE_HEADING = re.compile(
+    r"^(your privacy|we use cookies|rights and permissions|about this article|"
+    r"share this article|cite this article|subject|ethics declarations|additional information|search)",
+    re.I,
+)
+
+
+def trim_web_boilerplate(text: str) -> str:
+    """删掉出版社页面上的 cookie 横幅与尾部版权区块，保留正文/方法/数据可用性/参考文献。"""
+    kept: list = []
+    skip = False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            skip = bool(BOILERPLATE_HEADING.match(line[3:].strip()))
+        if not skip:
+            kept.append(line)
+    return "\n".join(kept).strip()
+
+
+def dsh_edge_cdp() -> str:
+    """DSH 侧边栏浏览器（Edge/Chrome）的调试端口：端口随机，只能从 DevToolsActivePort 读。
+
+    这样「侧边栏里认证过的会话」可以直接被 paper-finder 复用，不用另开窗口。
+    """
+    base = os.path.expanduser("~/AppData/Local/dsh-computer-use-win/agent-browser")
+    try:
+        names = os.listdir(base)
+    except OSError:
+        return ""
+    dirs = [os.path.join(base, n) for n in names if os.path.isfile(os.path.join(base, n, "DevToolsActivePort"))]
+    dirs.sort(key=lambda d: os.path.getmtime(os.path.join(d, "DevToolsActivePort")), reverse=True)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    for d in dirs[:3]:
+        try:
+            with open(os.path.join(d, "DevToolsActivePort"), encoding="utf-8") as fh:
+                port = int(fh.read().split()[0])
+        except Exception:
+            continue
+        url = f"http://127.0.0.1:{port}"
+        try:
+            with opener.open(url + "/json/version", timeout=1.5) as resp:
+                if resp.status == 200:
+                    return url
+        except Exception:
+            continue
+    return ""
+
+
+def cdp_alive(port: int = 9222) -> str:
+    """探测本地是否已有带调试端口的浏览器（用户登录过、过了人机验证）。"""
+    import socket
+
+    sock = socket.socket()
+    sock.settimeout(0.3)
+    try:
+        sock.connect(("127.0.0.1", port))
+        return f"http://127.0.0.1:{port}"
+    except Exception:
+        pass
+    finally:
+        sock.close()
+    return dsh_edge_cdp()
+
+
+def chrome_path(app: str = "edge") -> str:
+    """返回浏览器可执行文件；默认 Edge（用户指定），可切 Chrome。"""
+    import shutil
+
+    if app == "edge":
+        candidates = (
+            os.environ.get("EDGE_PATH", ""),
+            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        )
+        fallback = shutil.which("msedge") or ""
+    else:
+        candidates = (
+            os.environ.get("CHROME_PATH", ""),
+            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+            os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe"),
+        )
+        fallback = shutil.which("chrome") or ""
+    for cand in candidates:
+        if cand and os.path.exists(cand):
+            return cand
+    return fallback
+
+
+def html_fulltext(landing: str, timeout: int = 180, cdp: str = "", tab: str = "") -> tuple:
+    """用 markwebdown 把落地页抓成 Markdown，返回 (正文, 来源 URL, 说明)。"""
+    import subprocess
+    import tempfile
+
+    cmd = _markwebdown_cmd()
+    if not cmd or not landing:
+        return "", "", "markwebdown 不可用"
+    tmpdir = tempfile.mkdtemp(prefix="pf-web-")
+    try:
+        extra = ["--cdp", cdp] if cdp else []
+        if cdp and tab:
+            # 从已登录/已过验证的标签页直接读 DOM，避免重开页面再被 Cloudflare 拦
+            extra += ["--tab", tab]
+        proc = subprocess.run(
+            cmd + [landing, "-o", tmpdir, "--json", "--timeout", "45000", *extra],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+        )
+        raw = proc.stdout or ""
+        start = raw.find("{")
+        if start == -1:
+            return "", "", (proc.stderr or "markwebdown 无输出").strip().splitlines()[-1][:120]
+        summary = json.loads(raw[start:])
+        items = summary.get("items") or []
+        if not items or not items[0].get("ok") or not items[0].get("path"):
+            err = (items[0].get("error") if items else "") or "抓取失败"
+            return "", "", err[:120]
+        path = items[0]["path"]
+        if not os.path.isabs(path):
+            path = os.path.join(tmpdir, path)
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            text = fh.read()
+        meta, body = strip_frontmatter(text)
+        body = trim_web_boilerplate(body)
+        return body, meta.get("final_url") or meta.get("source") or landing, ""
+    except Exception as exc:
+        return "", "", f"{type(exc).__name__}: {exc}"[:120]
+    finally:
+        import shutil
+
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def looks_like_article(text: str) -> bool:
+    """区分正文页和登录墙/摘要页：够长且有段落结构才算。"""
+    if not text or len(text) < 2500:
+        return False
+    paragraphs = [ln for ln in text.splitlines() if len(ln.strip()) > 80]
+    return len(paragraphs) >= 8
 
 
 def cmd_search(args):
@@ -315,7 +526,12 @@ def cmd_get(args):
 
     title = args.title or meta.get("title") or doi
     abstract = abstract_by_doi(doi)
-    oa_pdf = "" if args.no_pdf else oa_pdf_url(doi, args.mailto)
+    loc = {"pdf": "", "landing": ""}
+    if not args.no_pdf:
+        try:
+            loc = oa_locations(doi, args.mailto)
+        except Exception:
+            loc = {"pdf": "", "landing": ""}
     category = args.category or "未分类"
 
     outdir = os.path.join(args.output or ".", category)
@@ -337,14 +553,55 @@ def cmd_get(args):
 
     pdf_path = None
     full_text = ""
-    if oa_pdf:
+    web_text = ""
+    web_source = ""
+    web_note = ""
+    if not args.no_pdf and not args.no_web:
+        landing = loc.get("landing") or f"https://doi.org/{doi}"
+        # 优先级：手动 --cdp > DSH 侧边栏浏览器（已登录态）> 本地 9222 窗口
+        dsh = dsh_edge_cdp()
+        candidates = [c for c in (args.cdp, dsh, cdp_alive()) if c]
+        candidates = list(dict.fromkeys(candidates))
+        needles = f"{doi}|{title[:60]}" if candidates else ""
+        web_text, web_source, web_note = "", "", ""
+        # 先试「已开标签页直接读 DOM」（不重载，不会再次触发行验证），再退回重新打开
+        for cdp in candidates:
+            got, src, note = html_fulltext(
+                landing, timeout=args.web_timeout, cdp=cdp, tab=needles
+            )
+            if got and looks_like_article(got):
+                web_text, web_source = got, src
+                web_note = ""
+                break
+            web_note = note or (f"标签页正文太短（{len(got)} 字符）" if got else "没有匹配的标签页")
+        if not web_text and candidates:
+            got, src, note = html_fulltext(
+                landing, timeout=args.web_timeout, cdp=candidates[0], tab=""
+            )
+            if got and looks_like_article(got):
+                web_text, web_source = got, src
+            else:
+                web_note = note or (f"网页正文太短（{len(got)} 字符）" if got else "抓取失败")
+        if web_text and not looks_like_article(web_text):
+            web_note = f"网页正文过短或无段落结构（{len(web_text)} 字符），改走 PDF"
+            web_text = ""
+        if not web_text and not cdp:
+            web_note = web_note or "可能需要登录或人机验证"
+            print(
+                f"提示：该页可能需要登录/验证——先运行 `paper_finder.py open {doi}`，"
+                "在弹出的浏览器里完成认证后重跑本命令。",
+                flush=True,
+            )
+    if not web_text and loc.get("pdf"):
         try:
             pdf_path = os.path.join(outdir, slug + ".pdf")
-            download(oa_pdf, pdf_path)
+            download(loc["pdf"], pdf_path)
             with open(pdf_path, "rb") as fh:
                 head = fh.read(4)
             if head == b"%PDF":
                 full_text = extract_pdf_text(pdf_path)
+                if not full_text:
+                    web_note = web_note or "PDF 已下载但抽不出文本（缺 pypdf/pdfplumber 且无 pdftotext），仅保留摘要"
             else:
                 os.remove(pdf_path)
                 pdf_path = None
@@ -353,25 +610,31 @@ def cmd_get(args):
                 os.remove(pdf_path)
             pdf_path = None
 
-    if full_text:
-        evidence = "全文级（自动提取，未经人工核对；引用具体数据前核对原文）"
+    if web_text:
+        evidence = "全文级（网页版经 markwebdown 转换，未经人工核对；引用具体数据前核对原文）"
+    elif full_text:
+        evidence = "全文级（PDF 自动提取，未经人工核对；引用具体数据前核对原文）"
     elif abstract:
         evidence = "摘要级（仅摘要，未获取全文；不能据此推断实验细节、统计或对照）"
     else:
         evidence = "仅元数据（摘要与全文均未获取）"
     lines += ["", f"**证据级别**：{evidence}"]
+    if web_note:
+        lines += ["", f"**全文获取**：{web_note}"]
 
     if abstract:
         lines += ["", "## 摘要", "", abstract]
-    if full_text:
+    if web_text:
+        lines += ["", "## 全文（网页版）", "", f"> 来源：{web_source}", "", web_text]
+    elif full_text:
         lines += ["", "## 全文（自动提取）", "", full_text]
 
-    if pdf_path is None and not args.no_pdf:
+    if not web_text and not full_text and not args.no_pdf:
         lines += [
             "",
             "## 下载",
             "",
-            f"未找到可自动下载的开放获取 PDF，请访问 DOI 链接手动下载：https://doi.org/{doi}",
+            f"未找到可自动获取的开放获取全文，请访问 DOI 链接手动下载：https://doi.org/{doi}",
         ]
 
     md_path = os.path.join(outdir, slug + ".md")
@@ -382,6 +645,38 @@ def cmd_get(args):
         print(f"PDF: {pdf_path}")
     else:
         print(f"未自动下载 PDF：https://doi.org/{doi}")
+
+
+def cmd_open(args):
+    import subprocess
+
+    if args.url:
+        url = args.url
+    elif args.doi:
+        url = f"https://doi.org/{norm_doi(args.doi)}"
+    else:
+        print("需要 DOI 或 --url", file=sys.stderr)
+        return 1
+    chrome = chrome_path(args.app)
+    if not chrome:
+        print("找不到浏览器，请设置 EDGE_PATH / CHROME_PATH 环境变量", file=sys.stderr)
+        return 1
+    profile = os.path.expanduser(f"~/.paper-finder/{args.app}-profile")
+    os.makedirs(profile, exist_ok=True)
+    subprocess.Popen(
+        [
+            chrome,
+            "--remote-debugging-port=9222",
+            f"--user-data-dir={profile}",
+            "--no-first-run",
+            "--no-default-browser-check",
+            url,
+        ],
+        close_fds=True,
+    )
+    print(f"已打开浏览器（CDP 9222）：{url}")
+    print("完成登录 / 人机验证后，重跑 get 命令，会自动接管这个窗口取全文。")
+    return 0
 
 
 def main():
@@ -401,11 +696,21 @@ def main():
     g.add_argument("--category", default="未分类")
     g.add_argument("--title", default=None)
     g.add_argument("--no-pdf", action="store_true", help="只生成元数据+摘要的 md，不下载 PDF/全文")
+    g.add_argument("--no-web", action="store_true", help="不用 markwebdown 抓网页全文，只走 PDF")
+    g.add_argument("--web-timeout", type=int, default=180, help="网页全文抓取超时秒数（默认 180）")
+    g.add_argument("--cdp", default=None, help="接管已开浏览器，如 http://127.0.0.1:9222（默认自动探测）")
     g.add_argument("--mailto", default=DEFAULT_MAILTO)
     g.set_defaults(func=cmd_get)
 
+    o = sub.add_parser("open", help="打开带调试端口的浏览器，用于付费墙登录/人机验证")
+    o.add_argument("doi", nargs="?", default=None)
+    o.add_argument("--url", default=None)
+    o.add_argument("--app", choices=["edge", "chrome"], default="edge", help="用哪个浏览器（默认 edge）")
+    o.set_defaults(func=cmd_open)
+
     args = ap.parse_args()
-    args.func(args)
+    result = args.func(args)
+    sys.exit(result or 0)
 
 
 if __name__ == "__main__":

@@ -46,7 +46,9 @@ Copy-Item -Path "han-skills\mineru" `
 
 读取文献 Markdown，合成或修改带 `[n]` 角标引用的高质量中文论文/综述，输出可直接交给 makelatex 的 Markdown。写作时区分实验观察、作者机制解释与综合推断，核查引用是否支持具体主张、多个来源是否独立，避免虚假共识、材料/条件混淆与因果跳跃。
 
-- **触发**：依据 md 资料写论文 / 综述；修改、润色、重构已有论文
+附带两个脚本：`compose_figures.py`（组图排版：等高、分行、编号、量尺寸）与 `tex_to_md.py`（LaTeX 源导出 Markdown，按 bbl 顺序编号）。
+
+- **触发**：依据 md 资料写论文 / 综述；修改、润色、重构已有论文；拼论文组图
 - **相关**：排版用 [makelatex](#makelatex)（PDF）或 [makedocx](#makedocx)（Word）
 
 #### makelatex
@@ -69,7 +71,9 @@ Copy-Item -Path "han-skills\mineru" `
 
 按关键词检索学术文献，校验元数据，按 DOI/标题合并重复记录，标注来源类型（原始研究 / 综述 / 预印本）与证据级别（摘要级 / 全文级），分类下载开放获取 PDF，并生成 Markdown 内容备份。
 
-- **触发**：查文献 / 下载 PDF
+另可抓取原文插图：内置 ACS / Wiley / Elsevier / RSC 四家取图规则，按 300 dpi 可印宽度判定合格与否，支持把图回填到文献 md 的「插图」一节。
+
+- **触发**：查文献 / 下载 PDF / 取论文插图
 - **依赖**：校园网环境
 
 #### zotero-paper-reader
@@ -299,3 +303,6 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - 将 `raft-report-updater` 并入 `makenote`（成为其「模式二：实验报告」），脚本迁至 `makenote/scripts/`。
 - 流程图改为四层流水线：素材 → 库（makelibrary）→ 内容 → 成品。
 
+## 🗒 更新日志
+
+- **2026-11-12**　paper-finder 增加取图能力（`fetch_figures.py`：四家出版社取图规则、分辨率判定、图注提取、回填文献 md）；makepaper 增加组图与 LaTeX 导出脚本（`compose_figures.py`、`tex_to_md.py`）；同步 markwebdown、makedocx 模板等未提交改动。

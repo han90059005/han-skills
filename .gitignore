@@ -5,7 +5,13 @@ __pycache__/
 *.egg-info/
 node_modules/
 .env
+# 含个人信息的技能 / 资料，一律不上传
 hanjinhong-profile/
+leave-note/
+# 图片默认忽略：签名、证件、截图最容易夹带个人信息；确需上传用 git add -f
+*.jpg
+*.jpeg
+*.png
 .backup/
 figedit/
 *.bak

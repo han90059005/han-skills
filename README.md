@@ -2,7 +2,7 @@
 
 个人常用 Codex 技能库，长期维护、持续更新。
 
-一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **22 个技能**。
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **21 个技能**。
 
 ---
 
@@ -64,13 +64,6 @@ Copy-Item -Path "han-skills\mineru" `
 
 - **触发**：md/tex 转 docx / 三线表 / 论文排版
 - **依赖**：pandoc + python-docx（无需 TeX Live）
-
-#### leave-note
-
-生成《家长知情同意书》（请假条）：改离开日期、返校时间、前往地点、落款日期四项，用 XeLaTeX + ctex 编译成 A4 PDF 与 300 DPI JPG，家长手写签名按 2.23 cm × 1.00 cm 原尺寸嵌入，并按固定流程复制到 `I:\学习资料\0-个人资料\2-请假`。
-
-- **触发**：请假条 / 假条 / 家长知情同意书 / 我要请几天假
-- **依赖**：XeLaTeX + ctex；模板与签名图随技能携带
 
 #### humanizer-bilingual
 
@@ -283,6 +276,7 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - `.gitignore` 增加 `*.bak` / `*.bak-*`，避免编辑器备份文件入库。
 - README 补 `leave-note`、`markwebdown`、`search-bibtex` 三节，技能总数改为 21。
 - 新增 `humanizer-bilingual` 技能（中英双语去 AI 味 / 降 AIGC 率，31 条中文检查点 + 26 条英文模式）：本机运行副本是目录联结到 `D:\AI-tools\humanizer-bilingual`，仓库这份为同步快照，技能总数改为 22。
+- 移除 `leave-note`（请假条）：含姓名、学院与学号、家长姓名与电话、手写签名图等个人信息，不再上传；已加入 `.gitignore`，本机文件保留、技能照常可用。`.gitignore` 同时默认忽略图片文件，防止签名/证件类图片再次夹带上传。
 
 ### 2026-11-15
 

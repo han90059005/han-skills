@@ -2,7 +2,7 @@
 
 个人常用 Codex 技能库，长期维护、持续更新。
 
-一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **21 个技能**。
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **22 个技能**。
 
 ---
 
@@ -71,6 +71,14 @@ Copy-Item -Path "han-skills\mineru" `
 
 - **触发**：请假条 / 假条 / 家长知情同意书 / 我要请几天假
 - **依赖**：XeLaTeX + ctex；模板与签名图随技能携带
+
+#### humanizer-bilingual
+
+中英双语去 AI 味 / 降 AIGC 率：先判语言与文体，中文走 `references/zh-patterns.md`（31 检查点），英文走 `references/en-patterns.md`（26 模式），只读需要的那一套；合并层负责路由、7 条铁律与 6 处冲突定档。只编辑已有文本，保留事实、数字、限定与作者声音。
+
+- **触发**：降 AIGC 率 / 去 AI 味 / AI 腔太重 / 润色得像人写的 / humanize
+- **依赖**：纯提示词技能，无外部依赖
+- **注意**：本机运行副本是目录联结 `~\.dsh\skills\humanizer-bilingual` → `D:\AI-tools\humanizer-bilingual`；仓库里这份是同步快照，**改内容先改源目录**，再由每周同步脚本覆盖过来
 
 ### 🖼️ 图件生产
 
@@ -274,6 +282,7 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 - `makedocx` 补「本机执行环境」实测表：写全 Python 路径（PATH 上的 `python` 是 WindowsApps 占位符）、沙箱内不要用 `uv`、Word COM 在沙箱会挂起不可用；后处理改为 `format_academic_docx.py` + 新增 `scripts/postprocess_docx.py`（A4、页码、页眉、表格列宽）。
 - `.gitignore` 增加 `*.bak` / `*.bak-*`，避免编辑器备份文件入库。
 - README 补 `leave-note`、`markwebdown`、`search-bibtex` 三节，技能总数改为 21。
+- 新增 `humanizer-bilingual` 技能（中英双语去 AI 味 / 降 AIGC 率，31 条中文检查点 + 26 条英文模式）：本机运行副本是目录联结到 `D:\AI-tools\humanizer-bilingual`，仓库这份为同步快照，技能总数改为 22。
 
 ### 2026-11-15
 

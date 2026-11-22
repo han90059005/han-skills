@@ -22,6 +22,18 @@ argument-hint: '[path to .md or .tex file]'
 - 目标 `.docx` 被 Word 占用报 Permission denied 时，另存为新文件名再处理。
 - 转换后校验：docx 能正常打开，标题字号、三线表、公式、参考文献保留；路径含中文/空格时用引号包裹。
 
+## 本机执行环境（Windows / DSH 沙箱，2026-11 实测）
+
+| 项 | 事实 | 后果 |
+|---|---|---|
+| Python | `C:\Users\admin\AppData\Local\Programs\Python\Python312\python.exe`（3.12，已装 python-docx 1.2.0、matplotlib 3.10.9） | PATH 上的 `python` 是 WindowsApps 占位符，直接调会失败；一律写全路径 |
+| uv | `UV_CACHE_DIR=D:\AI-tools\uv-cache` 在工作区外 | 沙箱下 `uv run` 报 `Failed to initialize cache ... 拒绝访问`，**不要用 uv**，直接用系统 Python |
+| Word COM | 沙箱内 `Documents.Open` 报「内存或磁盘空间不足」并挂起，残留无窗口 `WINWORD.EXE` | 不能用 Word 转 PDF 或做收尾；挂起后 `Stop-Process -Id <pid> -Force` 清掉，**不要重试** |
+| LibreOffice | 未安装（`soffice` 不存在） | 沙箱内无法渲染 docx 预览 |
+| 校验方式 | `python -c "from docx import Document; ..."` 查字号、字体、图宽、表格边框、页脚域 | 本机做不了「打开看一眼」，Phase 4 改成结构校验 |
+
+`format_academic_docx.py` 当脚本直接跑时会 `print("✅")`，GBK 控制台抛 `UnicodeEncodeError`（文件其实已保存）。用 `PYTHONIOENCODING=utf-8` 跑，或 `importlib` 载入后调 `format_academic_docx()`。
+
 ## 触发条件
 
 - 用户要求将 `.md` / `.tex` 转为 `.docx`
@@ -284,11 +296,20 @@ pandoc "path\to\file.tex" -o "path\to\file.docx" --pdf-engine=xelatex --resource
 
 ### Phase 3: Python 后处理（python-docx）
 
-Pandoc 生成的 docx 使用默认样式，需要 python-docx 后处理施加完整排版规范。
+Pandoc 生成的 docx 使用默认样式，需要两步后处理：先施加字号/字体/三线表规范，再补图片、列宽、页码。
 
 ```powershell
-uv run --with python-docx python "<format_script.py>" "<input.docx>" "<output.docx>"
+$PY = "C:\Users\admin\AppData\Local\Programs\Python\Python312\python.exe"
+& $PY "format_academic_docx.py" "<input.docx>" "_fmt.docx"
+& $PY "scripts/postprocess_docx.py" "_fmt.docx" "<output.docx>" `
+      --a4 --page-number --header-bold --table-widths 2.4,6.7,6.7
 ```
+
+`scripts/postprocess_docx.py` 补做三件 `format_academic_docx.py` 管不到的事：
+
+1. **图片段落居中**——pandoc 把插图放在普通段落里，会吃到「首行缩进 24 pt + 两端对齐」，图整体右移；脚本按 `w:drawing` 识别并改为居中、零缩进。
+2. **拉丁字体回写**——把 `w:ascii/w:hAnsi` 统一写成 Times New Roman（`eastAsia` 中文保持不变）。
+3. **表格列宽 + 页脚页码**——`--table-widths` 给固定列宽（cm），`--page-number` 在页脚插 `PAGE` 域。
 
 ### Phase 4: 自动格式检查
 
@@ -520,7 +541,8 @@ if __name__ == '__main__':
 若 `.docx` 被 Word 占用导致 `Permission denied`：
 
 ```powershell
-uv run --with python-docx python "format_academic_docx.py" "input.docx" "output_已排版.docx"
+& "C:\Users\admin\AppData\Local\Programs\Python\Python312\python.exe" `
+    "format_academic_docx.py" "input.docx" "output_已排版.docx"
 ```
 
 ---
@@ -550,3 +572,6 @@ winget install --id JohnMacFarlane.Pandoc
 - python-docx 临时安装使用 `uv run --with python-docx`，不污染系统 Python 环境
 - 首行缩进 2 字符在小四（12 pt）字号下 ≈ 24 pt；若正文使用其他字号需按比例调整
 - 表格三线表边框的 `w:sz` 单位是 1/8 pt：24 = 2pt, 12 = 1pt
+- 插图宽度：`{width=16cm}` 会被参考文档的文本宽裁到约 14.8 cm；A4 + 2.6 cm 页边距的文本宽是 15.8 cm，图宽给 14–15 cm 稳妥
+- 中文里的 ASCII 双引号会被 pandoc smart 引号转成「”…“」两个右引号；直接写全角「“ ”」，或用 `-f markdown-smart`
+- 正文要下标不要写 `2p_z`（原样输出），用 pandoc 下标：`2p~z~`、`(CH)~x~`、`φ~i~`、`E~g~`

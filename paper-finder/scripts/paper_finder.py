@@ -301,15 +301,24 @@ CRAWL4AI_PY = os.path.expanduser("~/AppData/Roaming/uv/tools/crawl4ai/Scripts/py
 
 
 def _markwebdown_cmd() -> list:
-    """优先用 markwebdown 的 bash 启动器，退回到 crawl4ai 解释器直接跑脚本。"""
+    """优先直接用 crawl4ai 解释器跑 fetch_md.py，再退回 bash 启动器。
+
+    Windows 上 shutil.which("bash") 会命中 C:\\Windows\\system32\\bash.EXE（WSL 存根），
+    未安装 WSL 发行版时该命令必然失败且没有可读报错，故不能让它抢在最前面。
+    """
     import shutil
 
+    def _is_wsl_stub(path: str) -> bool:
+        return bool(path) and "system32" in path.lower()
+
+    if os.path.exists(CRAWL4AI_PY) and os.path.exists(MARKWEBDOWN_PY):
+        return [CRAWL4AI_PY, MARKWEBDOWN_PY]
     explicit = os.environ.get("MARKWEBDOWN_BIN")
     if explicit:
         bash = shutil.which("bash")
-        return [bash, explicit] if bash else [explicit]
+        return [bash, explicit] if bash and not _is_wsl_stub(bash) else [explicit]
     bash = shutil.which("bash")
-    if bash and os.path.exists(MARKWEBDOWN_WRAPPER):
+    if bash and not _is_wsl_stub(bash) and os.path.exists(MARKWEBDOWN_WRAPPER):
         return [bash, MARKWEBDOWN_WRAPPER]
     if os.path.exists(CRAWL4AI_PY) and os.path.exists(MARKWEBDOWN_PY):
         return [CRAWL4AI_PY, MARKWEBDOWN_PY]
@@ -585,7 +594,7 @@ def cmd_get(args):
         if web_text and not looks_like_article(web_text):
             web_note = f"网页正文过短或无段落结构（{len(web_text)} 字符），改走 PDF"
             web_text = ""
-        if not web_text and not cdp:
+        if not web_text and not candidates:
             web_note = web_note or "可能需要登录或人机验证"
             print(
                 f"提示：该页可能需要登录/验证——先运行 `paper_finder.py open {doi}`，"

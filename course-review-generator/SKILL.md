@@ -149,6 +149,9 @@ Batch 5: Chapter 7 + 8 + 9 (5 files)
 
 For text-based PDFs, read the extracted `.txt` files with `read_file`. For scanned PDFs from Phase 1B, `view_image` is used directly.
 
+> 需要把课件里的图**放进成品**（不只是读内容）时，转 `slide-figure`：渲染取图、裁切、
+> 拼版、按需重画结构式，再插回 Markdown 并重建 PDF。
+
 Identify:
 - Chapter/section titles and hierarchy
 - **Key formulas** (特征方程, 动力学方程, 组成方程)

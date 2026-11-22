@@ -2,7 +2,7 @@
 
 个人常用 Codex 技能库，长期维护、持续更新。
 
-一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **17 个技能**。
+一套面向 [Codex](https://openai.com/codex) 场景的个人技能（Skills）集合，覆盖文档排版、文献管理、科研绘图与数据处理、演示文稿、开发与技能管理等方向，当前共 **21 个技能**。
 
 ---
 
@@ -22,7 +22,7 @@ Copy-Item -Path "han-skills\mineru" `
 
 ## 📦 技能总览
 
-按「素材 → 库 → 内容 → 成品」四层组织：素材层（paper-finder、mineru、pptx、course-review-generator）产出 Markdown，makelibrary 建索引，内容层（makepaper、makenote）合成文稿，成品层（makelatex 出 PDF、makedocx 出 Word、makeppt 出汇报）负责排版；git-use、find-skills、skill-vetter、uv-python-runner、dir 等为工具与维护层。
+按「素材 → 库 → 内容 → 成品」四层组织：素材层（paper-finder、mineru、pptx、course-review-generator）产出 Markdown，slide-figure 负责把课件里的图取出来重画并插回文档，makelibrary 建索引，内容层（makepaper、makenote）合成文稿，成品层（makelatex 出 PDF、makedocx 出 Word、makeppt 出汇报）负责排版；git-use、find-skills、skill-vetter、uv-python-runner、dir 等为工具与维护层。
 
 ## 📚 技能详情
 
@@ -65,6 +65,24 @@ Copy-Item -Path "han-skills\mineru" `
 - **触发**：md/tex 转 docx / 三线表 / 论文排版
 - **依赖**：pandoc + python-docx（无需 TeX Live）
 
+#### leave-note
+
+生成《家长知情同意书》（请假条）：改离开日期、返校时间、前往地点、落款日期四项，用 XeLaTeX + ctex 编译成 A4 PDF 与 300 DPI JPG，家长手写签名按 2.23 cm × 1.00 cm 原尺寸嵌入，并按固定流程复制到 `I:\学习资料\0-个人资料\2-请假`。
+
+- **触发**：请假条 / 假条 / 家长知情同意书 / 我要请几天假
+- **依赖**：XeLaTeX + ctex；模板与签名图随技能携带
+
+### 🖼️ 图件生产
+
+#### slide-figure
+
+把课件/文献里的图变成笔记 PDF 里的图：PPTX 经 PowerPoint COM 导出 PDF 再按 300 dpi 渲染取图、裁切去底、拼版，缺图时按需重画（化学结构式走 RDKit、聚合物重复单元走 PIL 示意），最后插回 Markdown 并重建 PDF（角标 + 页眉 + 目录）。
+
+- **触发**：给讲义插图 / 抠课件图 / 画结构式 / 拼对比图 / 图太糊
+- **依赖**：PowerPoint（COM）、poppler `pdftoppm`、Pillow、RDKit（可选，装在 `D:\AI-tools\rdkit-venv`）
+- **前提**：COM 导出必须在主机 PowerShell 里跑，bash 沙箱内会静默失败
+- **相关**：取图前的文字/公式读取用 [mineru](#mineru)；论文组图用 [makepaper](#makepaper) 的 `compose_figures.py`；成品排版用 [makelatex](#makelatex)
+
 ### 📚 文献与 PDF
 
 #### paper-finder
@@ -97,6 +115,20 @@ PDF / 课件 / 扫描件 → Markdown，并按需阅读、审校公式。两条�
 
 - **触发**：文献库 / 打标签 / 建立索引
 - **依赖**：本地运行，不联网
+
+#### markwebdown
+
+把网页抓成干净的 Markdown：本地 crawl4ai + 无头浏览器渲染，去掉导航与广告，带 frontmatter，支持批量与 JS 页面，适合存资料、给笔记/RAG 备料。
+
+- **触发**：抓网页 / 网页转 Markdown / 批量抓取 / 扒一下这个站
+- **依赖**：本地 crawl4ai + Playwright 浏览器
+
+#### search-bibtex
+
+用独立的 `search-bibtex` CLI 处理 BibTeX：从 PDF 提元数据、模糊检索书目源、按可配置源优先级排序候选、刷新 BibTeX、读 `config.toml` 默认值，并提供 Vim 键位的交互选择界面。覆盖 CS 预印本、会议与期刊论文，不依赖 Paperlib。
+
+- **触发**：给 PDF 补 BibTeX / 检索书目信息 / 刷新 .bib
+- **依赖**：`search-bibtex` 二进制（需在 PATH 或按 `openai.yaml` 配置）
 
 ### 🔬 科研与数据
 
@@ -233,6 +265,26 @@ py C:\Users\admin\.agents\skills\makelatex\scripts\md_to_latex_pdf.py 论文.md 
 > 定位：摘要级引用，适合综述型小作业；需要深挖方法/数据时，第 2 步去掉 `--no-pdf` 下载全文，再用 mineru 转全文。
 
 ## 📝 更新日志
+
+### 2026-11-22
+
+- 新增 `leave-note` 技能：请假条（家长知情同意书）一键生成 PDF + 300 DPI JPG，签名按原尺寸嵌入并同步到个人资料目录。
+- 新增 `search-bibtex` 技能：独立 CLI 的 BibTeX 检索/刷新流程，按源优先级排候选、Vim 键交互选择。
+- `slide-figure` 首次入库（技能与脚本在 11-15 已记录），`makenote` / `mineru` / `course-review-generator` 各加一行指向它的插图分工说明。
+- `makedocx` 补「本机执行环境」实测表：写全 Python 路径（PATH 上的 `python` 是 WindowsApps 占位符）、沙箱内不要用 `uv`、Word COM 在沙箱会挂起不可用；后处理改为 `format_academic_docx.py` + 新增 `scripts/postprocess_docx.py`（A4、页码、页眉、表格列宽）。
+- `.gitignore` 增加 `*.bak` / `*.bak-*`，避免编辑器备份文件入库。
+- README 补 `leave-note`、`markwebdown`、`search-bibtex` 三节，技能总数改为 21。
+
+### 2026-11-15
+
+- 新增 `slide-figure` 技能（图件生产）：把「课件取图 → 裁切 → 拼版 → 重画 → 插图并重建 PDF」固化下来。
+  - `slides2png.py`：PPTX 经 PowerPoint COM 导出 PDF，再按指定 dpi 渲染指定页；COM 步骤须在主机 PowerShell 执行。
+  - `crop.py`：按框裁切 + 去白边 + 可选灰底转白。
+  - `compose.py`：2×2 / 1×n 拼版，自动等比缩放对齐。
+  - `draw_polymer.py`：聚合物重复单元示意（噻吩骨架，带括号与 n）。
+  - `draw_mol.py` / `mol_lookup.py`：SMILES 画结构式；名称查 PubChem，查不到明确报错而不是猜。
+  - `subfix.py` + `reference/latex-header.tex`：中文笔记 md → PDF 的角标与页眉（章节名 + 页码）重建链。
+  - 与 `course-review-generator`、`mineru`、`makenote` 各加一行互相引用。
 
 ### 2026-11-12
 

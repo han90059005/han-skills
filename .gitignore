@@ -8,3 +8,5 @@ node_modules/
 hanjinhong-profile/
 .backup/
 figedit/
+*.bak
+*.bak-*

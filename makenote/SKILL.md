@@ -16,6 +16,7 @@ description: 笔记/报告维护助手，两种模式：模式一围绕一份「
 - course-review-generator：从课件 PPT 批量生成复习笔记，或合并多份已有笔记。
 - makepaper：依据文献 md 合成带引用的论文/综述。
 - makelatex / makedocx：只做最终排版（PDF / Word），不生成内容。
+- slide-figure：从课件/文献取图、裁切、拼版、重画结构式，插回 Markdown 并重建 PDF；本技能只管文字，插图交给它。
 
 ## 输入接口（归一化）
 

@@ -55,7 +55,15 @@ def set_run_font(run, cn_font=None, en_font=None, size=None, bold=None, italic=N
         rFonts.set(qn('w:eastAsia'), en_font)
 
     if cn_font:
+        # 给 run.font.name 赋值会把 w:ascii / w:hAnsi 一并改成中文字体，
+        # 结果英文与数字全变成宋体/黑体。赋值后必须把拉丁字体写回去。
         run.font.name = cn_font
+        if en_font:
+            _rPr = run._element.find(qn('w:rPr'))
+            _rf = _rPr.find(qn('w:rFonts')) if _rPr is not None else None
+            if _rf is not None:
+                _rf.set(qn('w:ascii'), en_font)
+                _rf.set(qn('w:hAnsi'), en_font)
 
     if size:
         run.font.size = size
